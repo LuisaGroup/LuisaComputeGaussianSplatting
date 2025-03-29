@@ -25,7 +25,8 @@ int GSTileSplatter::forward(
     Stream&                   stream,
     GSTileSplatterAccelProxy  accel,
     GSTileSplatterInputProxy  input,
-    GSSplatForwardOutputProxy output
+    GSSplatForwardOutputProxy output,
+    bool                      use_focal
 ) noexcept
 {
     auto width      = output.width;
@@ -43,18 +44,21 @@ int GSTileSplatter::forward(
     auto d_tiles_touched = accel.tiles_touched.subview(0, num_gaussians);
 
     CommandList cmdlist;
+
     // screen_state->tile state->image state
-    cmdlist << (*shad_allocate_tiles)(
-                   num_gaussians,
-                   resolution,
-                   grids,
-                   input.depth_features,
-                   input.means_2d,
-                   input.conic,
-                   d_tiles_touched,
-                   output.radii
-    )
-                   .dispatch(num_gaussians);
+    cmdlist
+        << (*shad_allocate_tiles)(
+               num_gaussians,
+               resolution,
+               grids,
+               input.depth_features,
+               input.means_2d,
+               input.conic,
+               d_tiles_touched,
+               output.radii,
+               use_focal
+           )
+               .dispatch(num_gaussians);
 
     // inclusive scan
     mp_device_parallel->scan_inclusive_sum<uint>(

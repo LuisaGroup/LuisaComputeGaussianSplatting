@@ -81,12 +81,14 @@ int main(int argc, char** argv)
     auto d_opacity = p_device->create_buffer<float>(P);
 
     // luisa::float3 pos = { 0.0f, -3.0f, 3.0f };
-    luisa::float3 pos      = { 3.0f, -3.0f, 3.0f };
+    luisa::float3 pos      = { 1.0f, -3.0f, 3.0f };
     luisa::float3 target   = { 0.0f, 0.0f, 0.0f };
     luisa::float3 world_up = { 0.0f, 0.0f, 1.0f };
 
     auto cam         = lcgs::get_lookat_cam(pos, target, world_up);
     cam.aspect_ratio = (float)resolution.x / (float)resolution.y;
+    cam.width        = resolution.x;
+    cam.height       = resolution.y;
 
     luisa::compute::CommandList cmd_list;
     lcgs::SHProcessor           sh_processor;

@@ -29,7 +29,8 @@ public:
          Stream&                   stream,
          GSTileSplatterAccelProxy  accel,
          GSTileSplatterInputProxy  input,
-         GSSplatForwardOutputProxy output
+         GSSplatForwardOutputProxy output,
+         bool                      use_focal = true
      ) noexcept;
 
     BufferFiller*   mp_buffer_filler;
@@ -48,7 +49,8 @@ protected:
              Buffer<float>, // means_2d // 2 * P
              Buffer<float>, // covs_2d // 3 * P
              Buffer<uint>,  // tiles_touched // P
-             Buffer<int>    // radii // P
+             Buffer<int>,   // radii // P
+             bool           // use_focal
              >>
         shad_allocate_tiles;
 

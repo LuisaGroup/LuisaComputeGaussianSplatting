@@ -20,6 +20,8 @@ struct Camera {
 
     float fov          = 60.0f;
     float aspect_ratio = 1.0f;
+    int   width        = 512;
+    int   height       = 512;
 };
 
 inline luisa::float4x4 local_to_world_matrix(Camera& cam) noexcept

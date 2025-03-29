@@ -109,7 +109,8 @@ void GSTileSplatter::compile_impl_shader(Device& device) noexcept
             BufferVar<float> means_2d,
             BufferVar<float> covs_2d,
             BufferVar<uint>  tiles_touched,
-            BufferVar<int>   radii
+            BufferVar<int>   radii,
+            Bool             use_focal
         ) {
             set_block_size(m_blocks.x * m_blocks.y);
             auto idx = dispatch_id().x;
@@ -127,9 +128,13 @@ void GSTileSplatter::compile_impl_shader(Device& device) noexcept
             Float3 cov_2d          = read_float3(covs_2d, idx);
             // ndc -> image space
             // cov_2d = make_float3(5.0f, 0.0f, 5.0f);
-            cov_2d.x = cov_2d.x * resolution.x * resolution.x * 0.25f;
-            cov_2d.y = cov_2d.y * resolution.x * resolution.y * 0.25f;
-            cov_2d.z = cov_2d.z * resolution.y * resolution.x * 0.25f;
+
+            $if(!use_focal)
+            {
+                cov_2d.x = cov_2d.x * resolution.x * resolution.x * 0.25f;
+                cov_2d.y = cov_2d.y * resolution.x * resolution.y * 0.25f;
+                cov_2d.z = cov_2d.z * resolution.y * resolution.x * 0.25f;
+            };
             // low-pass filter
             cov_2d.x += 0.3f;
             cov_2d.z += 0.3f;
