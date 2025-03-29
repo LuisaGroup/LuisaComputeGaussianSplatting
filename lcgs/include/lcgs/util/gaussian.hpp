@@ -17,14 +17,12 @@ Float3x3_T calc_cov(Float3_T scale, Float4_T qvec)
 {
     // LuisaCompute is Col-Major
     Float3x3_T R = R_from_qvec<Float4_T, Float3x3_T>(qvec);
-
-    // R = transpose(R); // keep the same with vanilla paper
     Float3x3_T S;
     S[0][0] = scale.x;
     S[1][1] = scale.y;
     S[2][2] = scale.z;
     // compute covariance
-    // $\Sigma=R^TS^TSR$
+    // $\Sigma=RSS^TR^T$
     Float3x3_T M = R * S;
     return M * transpose(M);
 }

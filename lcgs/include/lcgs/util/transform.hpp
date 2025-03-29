@@ -188,12 +188,13 @@ Float4_T qvec_mul(Float4_T q1, Float4_T q2)
 template <typename Float4_T, typename Float3x3_T>
 inline Float3x3_T R_from_qvec(Float4_T q, bool col_major = true)
 {
-    Float3x3_T R;
+
     // q = (x, y, z, w)
-    auto x = q.x;
-    auto y = q.y;
-    auto z = q.z;
-    auto w = q.w;
+    auto       x = q.x;
+    auto       y = q.y;
+    auto       z = q.z;
+    auto       w = q.w;
+    Float3x3_T R;
     // col 1
     R[0][0] = 1 - 2 * y * y - 2 * z * z;
     R[0][1] = 2 * x * y + 2 * z * w;

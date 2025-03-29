@@ -139,16 +139,13 @@ void GSTileSplatter::compile_impl_shader(Device& device) noexcept
             cov_2d.x += 0.3f;
             cov_2d.z += 0.3f;
 
-            Float  det     = cov_2d.x * cov_2d.z - cov_2d.y * cov_2d.y;
-            Float  inv_det = 1.0f / (det + 1e-6f);
-            Float3 conic   = inv_det * make_float3(cov_2d.z, -cov_2d.y, cov_2d.x);
-            // Float3 conic = make_float3(100, 0, 100);
-            // inv: [0][0] [0][1] transpose [1][1] inverse
-
-            Float mid       = 0.5f * (cov_2d.x + cov_2d.z);
-            Float lambda1   = mid + sqrt(max(0.1f, mid * mid - det));
-            Float lambda2   = mid - sqrt(max(0.1f, mid * mid - det));
-            Int   my_radius = ceil(3.0f * sqrt(max(lambda1, lambda2)));
+            Float  det       = cov_2d.x * cov_2d.z - cov_2d.y * cov_2d.y;
+            Float  inv_det   = 1.0f / (det + 1e-6f);
+            Float3 conic     = inv_det * make_float3(cov_2d.z, -cov_2d.y, cov_2d.x);
+            Float  mid       = 0.5f * (cov_2d.x + cov_2d.z);
+            Float  lambda1   = mid + sqrt(max(0.1f, mid * mid - det));
+            Float  lambda2   = mid - sqrt(max(0.1f, mid * mid - det));
+            Int    my_radius = ceil(3.0f * sqrt(max(lambda1, lambda2)));
 
             UInt2 rect_min, rect_max;
 
@@ -221,9 +218,10 @@ void GSTileSplatter::compile_forward_shader(Device& device) noexcept
             Float3 C                = make_float3(0.0f, 0.0f, 0.0f);
             UInt   contributor      = 0u;
             UInt   last_contributor = 0u;
-            Float3 white            = make_float3(1.0f, 1.0f, 1.0f);
-            Float3 black            = make_float3(0.0f, 0.0f, 0.0f);
-            Bool   is_black         = (tile_xy.x + tile_xy.y) % 2 == 0;
+
+            // Float3 white            = make_float3(1.0f, 1.0f, 1.0f);
+            // Float3 black            = make_float3(0.0f, 0.0f, 0.0f);
+            // Bool   is_black         = (tile_xy.x + tile_xy.y) % 2 == 0;
 
             $for(i, rounds)
             {
@@ -235,10 +233,7 @@ void GSTileSplatter::compile_forward_shader(Device& device) noexcept
                 {
                     UInt coll_id = point_list.read(progress + range_start);
                     collected_ids->write(thread_idx, coll_id);
-                    Float2 means = make_float2(
-                        means_2d.read(2 * coll_id + 0),
-                        means_2d.read(2 * coll_id + 1)
-                    );
+                    Float2 means = read_float2(means_2d, coll_id);
                     collected_means->write(thread_idx, means);
                     Float  opacity       = opacity_features.read(coll_id);
                     Float4 conic_opacity = make_float4(
@@ -271,11 +266,8 @@ void GSTileSplatter::compile_forward_shader(Device& device) noexcept
                     };
 
                     auto   id   = collected_ids->read(j);
-                    Float3 feat = make_float3(
-                        color_features->read(3 * id + 0),
-                        color_features->read(3 * id + 1),
-                        color_features->read(3 * id + 2)
-                    );
+                    Float3 feat = read_float3(color_features, id);
+
                     C                = C + T * alpha * feat;
                     T                = test_T;
                     last_contributor = contributor;
