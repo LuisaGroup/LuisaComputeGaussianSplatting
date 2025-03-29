@@ -1,0 +1,5 @@
+target("lcgs-app")
+    set_kind("binary")
+    add_deps("lcgs")
+    add_files("*.cpp")
+target_end()
