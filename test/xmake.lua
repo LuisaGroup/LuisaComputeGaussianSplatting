@@ -1,6 +1,7 @@
 target("lcgs-test")
 set_kind("binary")
 add_files("*.cpp")
+add_deps("lcgs")
 add_includedirs("_framework")
 add_files("_framework/test_util.cpp")
 target_end()
