@@ -26,7 +26,9 @@
 ![](doc/mip360_bicycle_result.png)
 
 
-## Know Issue
+## Known Issues
 
-- CUDA和dx似乎在矩阵乘的计算上存在不一致
+- CUDA和dx似乎在矩阵乘的计算上存在不一致，目前以cuda结果为准
+- 当前只有前向计算的代码，没有反向
+- 并行原语的实现比较粗暴，有提升效率的空间
 
