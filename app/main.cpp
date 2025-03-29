@@ -76,8 +76,8 @@ int main(int argc, char** argv)
     auto d_color   = p_device->create_buffer<float>(P * 3);
     auto d_opacity = p_device->create_buffer<float>(P);
 
-    luisa::float3 pos = { 0.0f, -3.0f, 3.0f };
-    // luisa::float3 pos      = { -3.0f, 3.0f, 3.0f };
+    // luisa::float3 pos = { 0.0f, -3.0f, 3.0f };
+    luisa::float3 pos      = { 3.0f, -3.0f, 3.0f };
     luisa::float3 target   = { 0.0f, 0.0f, 0.0f };
     luisa::float3 world_up = { 0.0f, 0.0f, 1.0f };
 

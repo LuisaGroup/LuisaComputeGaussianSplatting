@@ -8,4 +8,5 @@
 - build 
   - `xmake` 
 - run
-  - `xmake run lcgs-app <path_to_your_ply>`
+  - `xmake run lcgs-app --ply=<path_to_your_ply> --backend=<dx/cuda/...>`
+  - e.g. `xmake run lcgs-app --ply="D:/ws/data/assets/samples/gsplat.ply" --backend=cuda`
