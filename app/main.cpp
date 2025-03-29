@@ -28,10 +28,11 @@ int main(int argc, char** argv)
     luisa::log_level_info();
     luisa::uint2 resolution = luisa::make_uint2(1600, 1063);
 
-    constexpr auto default_ply_path = "D:/ws/data/assets/samples/gsplat.ply";
+    constexpr auto default_ply_path = "gsplat.ply";
     auto           ply_path         = std::filesystem::path{ default_ply_path };
     std::string    backend          = "dx";
     Context        context{ argv[0] };
+    std::string    out_dir = "out";
     // validate command line args
     {
         vstd::HashMap<vstd::string, vstd::function<void(vstd::string_view)>> cmds;
@@ -48,6 +49,9 @@ int main(int argc, char** argv)
         });
         cmds.emplace("backend", [&](vstd::string_view str) {
             backend = str;
+        });
+        cmds.emplace("out", [&](vstd::string_view str) {
+            out_dir = str;
         });
         // parse command
         parse_command(cmds, argc, argv, {});
@@ -247,8 +251,8 @@ int main(int argc, char** argv)
             h_img_rgb[pixel_idx + 2] = h_img[2 * h * w + idx] * 255; // B
         }
     }
-    auto img_name = "gs_splat.png";
-    stbi_write_png(img_name, w, h, 3, h_img_rgb.data(), 0);
+    auto img_name = out_dir + "/gs_splat_" + backend + ".png";
+    stbi_write_png(img_name.c_str(), w, h, 3, h_img_rgb.data(), 0);
     LUISA_INFO("result saved in {}", img_name);
 
     return 0;
