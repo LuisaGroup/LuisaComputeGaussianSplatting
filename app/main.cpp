@@ -81,9 +81,10 @@ int main(int argc, char** argv)
     auto d_opacity = p_device->create_buffer<float>(P);
 
     // luisa::float3 pos = { 0.0f, -3.0f, 3.0f };
-    luisa::float3 pos      = { 1.0f, -3.0f, 3.0f };
-    luisa::float3 target   = { 0.0f, 0.0f, 0.0f };
-    luisa::float3 world_up = { 0.0f, 0.0f, 1.0f };
+    luisa::float3 pos    = { 1.0f, -3.0f, 3.0f };
+    luisa::float3 target = { 0.0f, 0.0f, 0.0f };
+    // luisa::float3 world_up = { 0.0f, 0.0f, 1.0f };
+    luisa::float3 world_up = { 0.0f, 1.0f, 0.0f };
 
     auto cam         = lcgs::get_lookat_cam(pos, target, world_up);
     cam.aspect_ratio = (float)resolution.x / (float)resolution.y;
@@ -247,7 +248,8 @@ int main(int argc, char** argv)
         {
             int pixel_idx = (i * w + j) * 3;
             // int idx = i * w + j;
-            int idx                  = (h - i - 1) * w + j;
+            int idx = (h - i - 1) * w + j;
+
             h_img_rgb[pixel_idx + 0] = h_img[0 * h * w + idx] * 255; // R
             h_img_rgb[pixel_idx + 1] = h_img[1 * h * w + idx] * 255; // G
             h_img_rgb[pixel_idx + 2] = h_img[2 * h * w + idx] * 255; // B
