@@ -65,7 +65,8 @@ luisa::compute::BufferView<T> soa_element_buf_view(luisa::compute::SOAView<T> vi
     return view.buffer()
         .subview(
             view.soa_offset() + view.element_offset() * view.element_stride,
-            view.element_size())
+            view.element_size()
+        )
         .as<T>();
 }
 

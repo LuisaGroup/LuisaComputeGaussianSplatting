@@ -54,9 +54,8 @@ void GSProjector::compile_gs_project_shader(Device& device) noexcept
             // Float2 xy_ndc = make_float2(p_proj.x / tanfovx, p_proj.y / tanfovy);
             Float2 xy_ndc = p_proj.xy();
 
-            $if(p_view.z > 0.0f) { $return(); };
-            // inverse z
-            depth_features.write(idx, -p_view.z);
+            $if(p_view.z < 0.02f) { $return(); };
+            depth_features.write(idx, p_view.z);
 
             write_float2(means_2d, idx, xy_ndc);
             // calculate 3d covariance
