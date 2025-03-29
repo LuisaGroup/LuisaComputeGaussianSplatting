@@ -6,6 +6,7 @@
  */
 
 #include "lcgs/gs_projector.h"
+#include "luisa/dsl/builtin.h"
 
 namespace lcgs
 {
@@ -26,34 +27,36 @@ void GSProjector::forward(
     CommandList&           cmdlist,
     GSProjectorInputProxy  input,
     GSProjectorOutputProxy output,
-    lcgs::Camera&            cam
+    lcgs::Camera&          cam
 ) noexcept
 {
-    // auto tanfovy = tan(cam.fov * 0.5f);
-    // auto tanfovx = tanfovy * cam.aspect_ratio;
+    auto fovy    = cam.fov / 180.0f * 3.1415926536f;
+    auto tanfovy = tan(fovy * 0.5f);
+    auto tanfovx = tanfovy * cam.aspect_ratio;
 
-    // auto view_mat = cam.world_to_local_matrix();
-    // auto proj_mat = cam.projection_matrix();
+    auto view_mat = world_to_local_matrix(cam);
+    auto proj_mat = projection_matrix(tanfovx, tanfovy);
     // world -> screen -> ndc
-    // cmdlist << (*shad_project_gs)(
-    //                input.num_gaussians,
-    //                // input
-    //                input.pos,
-    //                input.scale,
-    //                input.rotq,
-    //                // params
-    //                input.scale_modifier,
-    //                // output
-    //                output.means_2d,
-    //                output.depth,
-    //                output.covs_2d,
-    //                // camera
-    //                tanfovx,
-    //                tanfovy,
-    //                view_mat,
-    //                proj_mat
-    // )
-    //                .dispatch(input.num_gaussians);
+    cmdlist
+        << (*shad_project_gs)(
+               input.num_gaussians,
+               // input
+               input.pos,
+               input.scale,
+               input.rotq,
+               // params
+               input.scale_modifier,
+               // output
+               output.means_2d,
+               output.depth,
+               output.covs_2d,
+               // camera
+               tanfovx,
+               tanfovy,
+               view_mat,
+               proj_mat
+           )
+               .dispatch(input.num_gaussians);
 }
 
 } // namespace lcgs

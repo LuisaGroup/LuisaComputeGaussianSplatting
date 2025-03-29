@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 /**
  * @file config.h
  * @brief LCGS configuration header.
@@ -6,9 +6,8 @@
  * @date 2025-03-29
  */
 
-
 #ifdef LCGS_DLL_EXPORTS
-#define LCGS_API __declspec(dllexport)
+    #define LCGS_API __declspec(dllexport)
 #else
-#define LCGS_API __declspec(dllimport)
+    #define LCGS_API __declspec(dllimport)
 #endif
