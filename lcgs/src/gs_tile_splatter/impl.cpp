@@ -108,12 +108,11 @@ int GSTileSplatter::forward(
         accel.temp_storage,
         num_rendered, 64
     );
+    stream << cmdlist.commit();
 
     auto d_ranges = accel.ranges.subview(0, grids.x * grids.y * 2);
 
     cmdlist << mp_buffer_filler->fill(device, d_ranges, 0u);
-
-    stream << cmdlist.commit() << synchronize();
 
     // get range
     LUISA_INFO("get ranges");
