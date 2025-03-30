@@ -28,8 +28,8 @@ struct PointState {
 
 // Tiled Instance State
 struct InstanceState {
-    ulong key_unsorted;
-    ulong key;
+    luisa::ulong key_unsorted;
+    luisa::ulong key;
     uint  value_unsorted;
     uint  value;
 };
