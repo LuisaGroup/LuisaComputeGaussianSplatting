@@ -128,9 +128,10 @@ int main(int argc, char** argv)
     auto d_opacity = p_device->create_buffer<float>(P);
 
     // luisa::float3 pos = { 0.0f, -3.0f, 3.0f };
-    luisa::float3 pos      = { -3.0f, -1.0f, 2.0f };
-    luisa::float3 target   = { 0.0f, 0.0f, 0.0f };
-    luisa::float3 world_up = { 0.0f, -1.0f, 0.0f };
+    luisa::float3 pos    = { -3.0f, -0.5f, 3.3f };
+    luisa::float3 target = { 0.0f, 3.0f, 0.5f };
+
+    luisa::float3 world_up = { 0.0f, -1.0f, -1.0f };
     if (world_type == WorldType::BLENDER)
     {
         world_up = { 0.0f, 0.0f, 1.0f };
@@ -269,7 +270,7 @@ int main(int argc, char** argv)
 
     lcgs::GSTileSplatterInputProxy input{
         .num_gaussians    = P,
-        .bg_color         = luisa::make_float3(0.0f, 0.0f, 0.0f),
+        .bg_color         = luisa::make_float3(1.0f, 1.0f, 1.0f),
         .means_2d         = d_means_2d,
         .depth_features   = d_depth_features,
         .conic            = d_covs_2d,
