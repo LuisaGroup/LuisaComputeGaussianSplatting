@@ -128,8 +128,14 @@ int main(int argc, char** argv)
     auto d_opacity = p_device->create_buffer<float>(P);
 
     // luisa::float3 pos = { 0.0f, -3.0f, 3.0f };
-    luisa::float3 pos    = { -3.0f, -0.5f, 3.3f };
-    luisa::float3 target = { 0.0f, 3.0f, 0.5f };
+
+    // garden
+    // luisa::float3 pos    = { -3.0f, -0.5f, 3.3f };
+    // luisa::float3 target = { 0.0f, 3.0f, 0.5f };
+    // lego and bicycle
+    luisa::float3 pos    = { -3.0f, -0.5f, 2.3f };
+    luisa::float3 target = { 0.0f, 0.0f, 0.5f };
+    luisa::float3 world_up = { 0.0f, -1.0f, -0.0f };
 
     luisa::float3 world_up = { 0.0f, -1.0f, -1.0f };
     if (world_type == WorldType::BLENDER)
