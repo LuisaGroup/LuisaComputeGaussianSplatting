@@ -201,6 +201,8 @@ int main(int argc, char** argv)
     auto   d_img   = p_device->create_buffer<float>(w * h * 3);
     auto   d_radii = p_device->create_buffer<int>(P);
 
+    luisa::log_level_error();
+    
     for (auto exp_i = 0; exp_i < exp_N; exp_i++)
     {
         sh_processor.process(cmd_list, { P, 3, d_pos }, cam, d_sh, d_color, 3, 3);
@@ -300,6 +302,7 @@ int main(int argc, char** argv)
                 << luisa::compute::synchronize();
 
     auto exp_time = clk.toc();
+    luisa::log_level_info();
     LUISA_INFO("exp time: {0} ms", exp_time);
     LUISA_INFO("fps: {0} with test N {1}", 1000.0f / (exp_time / exp_N), exp_N);
 
