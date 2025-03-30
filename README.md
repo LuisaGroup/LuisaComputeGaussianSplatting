@@ -27,6 +27,12 @@
 
 ![](doc/mip360_bicycle_result.png)
 
+### Multi Backend Compare 
+
+不同后端实现效果对比
+
+![](doc/fig_lcgs_compare.png)
+
 ## Known Issues
 
 - 当前的camera位置是写死在代码里的，你可以在`app/main.cpp`中找到`pos`和`target`设置你想要的相机位姿，后续会暴露到配置中或者引入GUI 
