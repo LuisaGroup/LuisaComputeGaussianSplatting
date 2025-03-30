@@ -23,6 +23,12 @@
 using namespace luisa;
 using namespace luisa::compute;
 
+enum class WorldType : uint8_t
+{
+    COLMAP  = 0,
+    BLENDER = 1
+};
+
 int main(int argc, char** argv)
 {
     luisa::log_level_info();
@@ -32,7 +38,9 @@ int main(int argc, char** argv)
     auto           ply_path         = std::filesystem::path{ default_ply_path };
     std::string    backend          = "dx";
     Context        context{ argv[0] };
-    std::string    out_dir = "out";
+    std::string    out_dir    = "out";
+    WorldType      world_type = WorldType::COLMAP;
+
     // validate command line args
     {
         vstd::HashMap<vstd::string, vstd::function<void(vstd::string_view)>> cmds;
@@ -53,10 +61,49 @@ int main(int argc, char** argv)
         cmds.emplace("out", [&](vstd::string_view str) {
             out_dir = str;
         });
+        cmds.emplace("world", [&](vstd::string_view str = "colmap") {
+            if (str == "colmap")
+            {
+                world_type = WorldType::COLMAP;
+            }
+            else if (str == "blender")
+            {
+                world_type = WorldType::BLENDER;
+            }
+            else
+            {
+                LUISA_ERROR("Invalid world type: {}", str);
+            }
+        });
         // parse command
         parse_command(cmds, argc, argv, {});
     }
-    LUISA_INFO("Rendering {} with backend {}", ply_path.string(), backend);
+    auto ply_name = ply_path.filename().string();
+    // find last /<xxxx>.ply
+    // after last \ or /
+    auto spos = ply_name.find_last_of("/\\");
+    // before .ply
+    auto epos = ply_name.find_last_of('.');
+    if (spos != std::string::npos && epos != std::string::npos && spos < epos)
+    {
+        ply_name = ply_name.substr(spos + 1, epos - spos - 1);
+    }
+    else if (epos != std::string::npos)
+    {
+        ply_name = ply_name.substr(0, epos);
+    }
+    else if (spos != std::string::npos)
+    {
+        ply_name = ply_name.substr(spos + 1);
+    }
+    else
+    {
+        LUISA_ERROR("Invalid ply name: {}", ply_name);
+    }
+
+    LUISA_INFO("ply_name: {}", ply_name);
+    auto world_type_fmt = world_type == WorldType::COLMAP ? "colmap" : "blender";
+    LUISA_INFO("Rendering {} with backend {}, assuming world type {}", ply_path.string(), backend, world_type_fmt);
     Device  device   = context.create_device(backend.c_str());
     Device* p_device = &device;
 
@@ -81,10 +128,13 @@ int main(int argc, char** argv)
     auto d_opacity = p_device->create_buffer<float>(P);
 
     // luisa::float3 pos = { 0.0f, -3.0f, 3.0f };
-    luisa::float3 pos    = { -3.0f, -1.0f, 2.0f };
-    luisa::float3 target = { 0.0f, 0.0f, 0.0f };
-    // luisa::float3 world_up = { 0.0f, 0.0f, 1.0f };
+    luisa::float3 pos      = { -3.0f, -1.0f, 2.0f };
+    luisa::float3 target   = { 0.0f, 0.0f, 0.0f };
     luisa::float3 world_up = { 0.0f, -1.0f, 0.0f };
+    if (world_type == WorldType::BLENDER)
+    {
+        world_up = { 0.0f, 0.0f, 1.0f };
+    }
 
     auto cam         = lcgs::get_lookat_cam(pos, target, world_up);
     cam.aspect_ratio = (float)resolution.x / (float)resolution.y;
@@ -99,8 +149,6 @@ int main(int argc, char** argv)
     cmd_list << d_pos.view(0, P * 3).copy_from(data.pos.data())
              << d_scale.view(0, P * 3).copy_from(data.scale.data())
              << d_rotq.view(0, P * 4).copy_from(data.rotq.data())
-             //  << d_color.copy_from(data.color.data())
-             //  << d_color.copy_from(h_color.data())
              << d_sh.view(0, P * 3 * 16).copy_from(data.feature.data())
              << d_opacity.view(0, P * 1).copy_from(data.opacity.data());
 
@@ -113,17 +161,17 @@ int main(int argc, char** argv)
 
     sh_processor.process(cmd_list, { P, 3, d_pos }, cam, d_sh, d_color, 3, 3);
 
-    luisa::vector<float> h_means_2d(P * 2);
-    luisa::vector<float> h_depth_features(P);
-    luisa::vector<float> h_covs_2d(P * 3);
-    auto                 d_means_2d       = p_device->create_buffer<float>(P * 2);
-    auto                 d_depth_features = p_device->create_buffer<float>(P);
-    auto                 d_covs_2d        = p_device->create_buffer<float>(P * 3);
+    auto d_means_2d       = p_device->create_buffer<float>(P * 2);
+    auto d_depth_features = p_device->create_buffer<float>(P);
+    auto d_covs_2d        = p_device->create_buffer<float>(P * 3);
 
     projector.forward(cmd_list, { P, d_pos, d_scale, d_rotq, 1.0f }, { d_means_2d, d_covs_2d, d_depth_features }, cam);
     (*p_stream) << cmd_list.commit();
 
-    // debug BEGIN
+    // // ----------- debug BEGIN
+    // luisa::vector<float> h_means_2d(P * 2);
+    // luisa::vector<float> h_depth_features(P);
+    // luisa::vector<float> h_covs_2d(P * 3);
     // stream << d_means_2d.copy_to(h_means_2d.data())
     //        << d_depth_features.copy_to(h_depth_features.data())
     //        << d_covs_2d.copy_to(h_covs_2d.data())
@@ -141,7 +189,7 @@ int main(int argc, char** argv)
     // {
     //     LUISA_INFO("covs_2d: {0} {1} {2}", h_covs_2d[i * 3], h_covs_2d[i * 3 + 1], h_covs_2d[i * 3 + 2]);
     // }
-    // debug END
+    // // ----------- debug END
 
     lcgs::GSTileSplatter tile_splatter;
     tile_splatter.create(*p_device);
@@ -255,7 +303,7 @@ int main(int argc, char** argv)
             h_img_rgb[pixel_idx + 2] = h_img[2 * h * w + idx] * 255; // B
         }
     }
-    auto img_name = out_dir + "/gs_splat_" + backend + ".png";
+    auto img_name = out_dir + "/" + ply_name + "_" + backend + ".png";
     stbi_write_png(img_name.c_str(), w, h, 3, h_img_rgb.data(), 0);
     LUISA_INFO("result saved in {}", img_name);
 
