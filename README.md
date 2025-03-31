@@ -40,11 +40,11 @@
 
 ### lego
 
-![](doc/nerf_lego_result.png)
+![](doc/nerf_blender_lego_30000_cuda.png)
 
 ### mip360_bicycle
 
-![](doc/mip360_bicycle_result.png)
+![](doc/mip360_bicycle_30000_cuda.png)
 
 ### Multi Backend Compare 
 
