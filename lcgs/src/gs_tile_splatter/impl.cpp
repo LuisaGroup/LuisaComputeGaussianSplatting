@@ -6,7 +6,7 @@
  */
 
 #include "lcgs/gs_tile_splatter.h"
-#include "lcgs/state.h"
+#include "lcgs/util/misc.hpp"
 
 namespace lcgs
 {
@@ -99,6 +99,7 @@ int GSTileSplatter::forward(
                    .dispatch(num_gaussians);
 
     // sort keys
+    int bits = get_higher_msb(grids.x * grids.y) + 32;
     mp_device_parallel->radix_sort<ulong, uint>(
         cmdlist,
         accel.point_list_keys_unsorted,
@@ -106,7 +107,7 @@ int GSTileSplatter::forward(
         accel.point_list_keys,
         accel.point_list,
         accel.temp_storage,
-        num_rendered, 64
+        num_rendered, bits
     );
     stream << cmdlist.commit();
 

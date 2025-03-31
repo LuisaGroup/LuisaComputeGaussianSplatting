@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file bit_helper.h
  * @brief Bit Helper
@@ -8,12 +9,27 @@
 #include <cmath>
 #include <cstdint>
 
-#include "lcgs/config.h"
-
 namespace lcgs
 {
 
-uint32_t     get_higher_msb(uint32_t n);
+inline uint32_t get_higher_msb(uint32_t n)
+{
+    uint32_t msb  = sizeof(n) * 4;
+    uint32_t step = msb;
+    while (step > 1)
+    {
+        step /= 2;
+        if (n >> msb)
+            msb += step;
+        else
+            msb -= step;
+    }
+    if (n >> msb)
+    {
+        msb++;
+    }
+    return msb;
+}
 inline float to_radius(float degree) { return degree * 0.0174532925f; }
 inline int   imax(int a, int b) { return a > b ? a : b; }
 inline bool  is_power_of_two(int x) { return (x & (x - 1)) == 0; }

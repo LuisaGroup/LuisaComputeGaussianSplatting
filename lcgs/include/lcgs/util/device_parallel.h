@@ -5,9 +5,11 @@
  * @brief The device parallel
  * @date 2023-12-28
  */
+
+#include "lcgs/config.h"
 #include "lcgs/core/runtime.h"
 #include "lcgs/core/concept.hpp" // for NumericT
-#include "lcgs/util/misc.h"      // for is_power_of_two
+#include "lcgs/util/misc.hpp"    // for is_power_of_two
 
 namespace lcgs
 {
