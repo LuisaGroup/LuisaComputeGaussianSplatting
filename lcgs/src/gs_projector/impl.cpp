@@ -31,15 +31,13 @@ void GSProjector::forward(
     bool                   use_focal
 ) noexcept
 {
-    auto fovy    = cam.fov / 180.0f * 3.1415926536f;
-    auto tanfovy = tan(fovy * 0.5f);
-    auto tanfovx = tanfovy * cam.aspect_ratio;
-
+    auto fovy     = cam.fov / 180.0f * 3.1415926536f;
+    auto tanfovy  = tan(fovy * 0.5f);
+    auto tanfovx  = tanfovy * cam.aspect_ratio;
     auto view_mat = world_to_local_matrix(cam);
     auto proj_mat = projection_matrix(tanfovx, tanfovy);
     LUISA_INFO("view mat {}", view_mat);
     LUISA_INFO("proj mat {}", proj_mat);
-
     auto focalx = cam.width / (2.0f * tanfovx);
     auto focaly = cam.height / (2.0f * tanfovy);
 

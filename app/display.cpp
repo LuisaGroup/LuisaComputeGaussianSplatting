@@ -116,7 +116,10 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
 
         if (camera_dirty)
         {
-            _camera = get_lookat_cam(_camera.position, _camera.position + _camera.front, _camera.up);
+            // _camera = get_lookat_cam(_camera.position, _camera.position + _camera.front, _camera.up);
+            _camera.front = luisa::normalize(_camera.front);
+            _camera.right = luisa::normalize(luisa::cross(_camera.front, _camera.up));
+            _camera.up    = luisa::normalize(luisa::cross(_camera.right, _camera.front));
         }
 
         auto viewport = ImGui::GetMainViewport();

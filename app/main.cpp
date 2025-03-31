@@ -235,56 +235,30 @@ int main(int argc, char** argv)
         projector.forward(cmd_list, { P, d_pos, d_scale, d_rotq, 1.0f }, { d_means_2d, d_covs_2d, d_depth_features }, cam);
         (*p_stream) << cmd_list.commit();
 
-        // // ----------- debug BEGIN
-        // luisa::vector<float> h_means_2d(P * 2);
-        // luisa::vector<float> h_depth_features(P);
-        // luisa::vector<float> h_covs_2d(P * 3);
-        // stream << d_means_2d.copy_to(h_means_2d.data())
-        //        << d_depth_features.copy_to(h_depth_features.data())
-        //        << d_covs_2d.copy_to(h_covs_2d.data())
-        //        << synchronize();
-        // // sample first 30 elements
-        // for (int i = 0; i < 30; i++)
-        // {
-        //     LUISA_INFO("means_2d: {0} {1}", h_means_2d[i * 2], h_means_2d[i * 2 + 1]);
-        // }
-        // for (int i = 100; i < 130; i++)
-        // {
-        //     LUISA_INFO("depth_features: {0}", h_depth_features[i]);
-        // }
-        // for (int i = 0; i < 30; i++)
-        // {
-        //     LUISA_INFO("covs_2d: {0} {1} {2}", h_covs_2d[i * 3], h_covs_2d[i * 3 + 1], h_covs_2d[i * 3 + 2]);
-        // }
-        // // ----------- debug END
-
-        // acceleration structure
-
-        // for temp storage
-
-        dp.scan_inclusive_sum<uint>(
-            temp_space_size,
-            d_tiles_touched,
-            d_points_offset, 0, P
-        );
-        LUISA_INFO("temp_space_size: {}", temp_space_size);
-
-        dp.radix_sort<luisa::ulong, luisa::uint>(
-            sort_temp_size,
-            d_point_list_keys_unsorted,
-            d_point_list_unsorted,
-            d_point_list_keys,
-            d_point_list,
-            L, 64
-        );
-
-        LUISA_INFO("sort_temp_size: {0}", sort_temp_size);
-
-        if (sort_temp_size > temp_space_size)
+        // fist call inclusive sum and radix sort for temp storage
         {
-            temp_space_size = sort_temp_size;
+            dp.scan_inclusive_sum<uint>(
+                temp_space_size,
+                d_tiles_touched,
+                d_points_offset, 0, P
+            );
+            LUISA_INFO("temp_space_size: {}", temp_space_size);
+            dp.radix_sort<luisa::ulong, luisa::uint>(
+                sort_temp_size,
+                d_point_list_keys_unsorted,
+                d_point_list_unsorted,
+                d_point_list_keys,
+                d_point_list,
+                L, 64
+            );
+            LUISA_INFO("sort_temp_size: {0}", sort_temp_size);
+
+            if (sort_temp_size > temp_space_size)
+            {
+                temp_space_size = sort_temp_size;
+            }
         }
-        // maximum temp space size
+        // allocate temp storage size
         auto temp_storage = p_device->create_buffer<uint>(temp_space_size);
 
         lcgs::GSSplatForwardOutputProxy output{
