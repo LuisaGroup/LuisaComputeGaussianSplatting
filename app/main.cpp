@@ -292,7 +292,7 @@ int main(int argc, char** argv)
 
         lcgs::GSTileSplatterInputProxy input{
             .num_gaussians    = P,
-            .bg_color         = luisa::make_float3(1.0f, 1.0f, 1.0f),
+            .bg_color         = luisa::make_float3(0.f),
             .means_2d         = d_means_2d,
             .depth_features   = d_depth_features,
             .conic            = d_covs_2d,
