@@ -15,6 +15,8 @@ private:
     luisa::compute::Stream&      _stream;
     Camera&                      _camera;
     luisa::float3&               _bg_color;
+    float                        _camera_move_speed;
+    float                        _camera_rotate_speed;
     luisa::compute::ImGuiWindow  _window;
     luisa::compute::Image<float> _framebuffer;
     uint64_t                     _framebuffer_handle;
