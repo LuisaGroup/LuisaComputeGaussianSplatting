@@ -8,11 +8,16 @@
 
 #include "lcgs/config.h"
 #include "lcgs/core/runtime.h"
-#include "lcgs/core/concept.hpp" // for NumericT
-#include "lcgs/util/misc.hpp"    // for is_power_of_two
+#include <type_traits>
+#include "lcgs/util/misc.hpp" // for is_power_of_two
 
 namespace lcgs
 {
+
+template <typename T>
+static constexpr bool is_numeric_v = std::is_integral_v<T> || std::is_floating_point_v<T>;
+template <typename T>
+concept NumericT = is_numeric_v<T>;
 
 class LCGS_API DeviceParallel : public LuisaModule
 {
