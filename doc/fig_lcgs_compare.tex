@@ -69,7 +69,7 @@
                 \includegraphics[width=8cm,height=5cm]{nerf_blender_lego_30000_cuda.png}
             };
             \node[desc, below=0.05cm of img11] (desc11a) {Rendered by \deviceOne };
-            \node[desc, below=0.01cm of desc11a] (desc11b) {\bf FPS };
+            \node[desc, below=0.01cm of desc11a] (desc11b) {\bf FPS: 21.70 };
         \end{tikzpicture}
     };
     
@@ -80,7 +80,7 @@
                 \includegraphics[width=8cm,height=5cm]{nerf_blender_chair_30000_cuda.png}
             };
             \node[desc, below=0.05cm of img12] (desc12a) {Rendered by \deviceOne };
-            \node[desc, below=0.01cm of desc12a] (desc12b) {\bf FPS };
+            \node[desc, below=0.01cm of desc12a] (desc12b) {\bf FPS: 19.92 };
         \end{tikzpicture}
     };
     
@@ -102,7 +102,7 @@
                 \includegraphics[width=8cm,height=5cm]{mip360_garden_30000_cuda.png}
             };
             \node[desc, below=0.05cm of img14] (desc14a) {Rendered by \deviceOne };
-            \node[desc, below=0.01cm of desc14a] (desc14b) {\bf FPS };
+            \node[desc, below=0.01cm of desc14a] (desc14b) {\bf FPS: 14.60 };
         \end{tikzpicture}
     };
 \end{scope}
@@ -116,7 +116,7 @@
                 \includegraphics[width=8cm,height=5cm]{nerf_blender_lego_30000_dx.png}
             };
             \node[desc, below=0.05cm of img21] (desc21a) {Rendered by \deviceOne };
-            \node[desc, below=0.01cm of desc21a] (desc21b) {\bf FPS };
+            \node[desc, below=0.01cm of desc21a] (desc21b) {\bf FPS: 22.68 };
         \end{tikzpicture}
     };
     
@@ -127,7 +127,7 @@
                 \includegraphics[width=8cm,height=5cm]{nerf_blender_chair_30000_dx.png}
             };
             \node[desc, below=0.05cm of img22] (desc22a) {Rendered by \deviceOne };
-            \node[desc, below=0.01cm of desc22a] (desc22b) {\bf FPS };
+            \node[desc, below=0.01cm of desc22a] (desc22b) {\bf FPS: 22.77 };
         \end{tikzpicture}
     };
     
@@ -149,7 +149,7 @@
                 \includegraphics[width=8cm,height=5cm]{mip360_garden_30000_dx.png}
             };
             \node[desc, below=0.05cm of img24] (desc24a) {Rendered by \deviceOne };
-            \node[desc, below=0.01cm of desc24a] (desc24b) {\bf FPS };
+            \node[desc, below=0.01cm of desc24a] (desc24b) {\bf FPS: 15.09 };
         \end{tikzpicture}
     };
 \end{scope}
@@ -160,18 +160,22 @@
     % Cell (3,1)
     \node[cell] (cell31) at (\colOne,\rowThree) {
         \begin{tikzpicture}
-            \node[image] (img31) {Image};
-            \node[desc, below=0.05cm of img31] (desc31a) {First line of description text};
-            \node[desc, below=0.01cm of desc31a] (desc31b) {Second line of description text};
+            \node[image] (img31) {
+                \includegraphics[width=8cm,height=5cm]{nerf_blender_lego_30000_metal.png}
+            };
+            \node[desc, below=0.05cm of img31] (desc31a) { Rendered by \deviceThree };
+            \node[desc, below=0.01cm of desc31a] (desc31b) {\bf FPS: 8.21};
         \end{tikzpicture}
     };
     
     % Cell (3,2)
     \node[cell] (cell32) at (\colTwo,\rowThree) {
         \begin{tikzpicture}
-            \node[image] (img32) {Image};
-            \node[desc, below=0.05cm of img32] (desc32a) {First line of description text};
-            \node[desc, below=0.01cm of desc32a] (desc32b) {Second line of description text};
+            \node[image] (img32) {
+                \includegraphics[width=8cm,height=5cm]{nerf_blender_chair_30000_metal.png}
+            };
+            \node[desc, below=0.05cm of img32] (desc32a) {Rendered by \deviceThree };
+            \node[desc, below=0.01cm of desc32a] (desc32b) {\bf FPS: 8.23};
         \end{tikzpicture}
     };
     
@@ -189,9 +193,11 @@
     % Cell (3,4)
     \node[cell] (cell34) at (\colFour,\rowThree) {
         \begin{tikzpicture}
-            \node[image] (img34) {Image};
-            \node[desc, below=0.05cm of img34] (desc34a) {First line of description text};
-            \node[desc, below=0.01cm of desc34a] (desc34b) {Second line of description text};
+            \node[image] (img34) {
+                \includegraphics[width=8cm,height=5cm]{mip360_garden_30000_metal.png}
+            };
+            \node[desc, below=0.05cm of img34] (desc34a) {Rendered by \deviceThree };
+            \node[desc, below=0.01cm of desc34a] (desc34b) {\bf FPS: 3.76};
         \end{tikzpicture}
     };
 \end{scope}
