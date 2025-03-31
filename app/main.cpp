@@ -19,6 +19,7 @@
 #include "lcgs/util/camera.h"
 #include "lcgs/util/device_parallel.h"
 #include "luisa/runtime/rhi/stream_tag.h"
+#include "display.h"
 #include <stb/stb_image_write.h>
 
 using namespace luisa;
@@ -39,8 +40,9 @@ int main(int argc, char** argv)
     auto           ply_path         = std::filesystem::path{ default_ply_path };
     std::string    backend          = "dx";
     Context        context{ argv[0] };
-    std::string    out_dir    = "out";
-    WorldType      world_type = WorldType::COLMAP;
+    std::string    out_dir        = "out";
+    WorldType      world_type     = WorldType::COLMAP;
+    bool           should_display = false;
 
     int exp_N = 1;
 
@@ -80,6 +82,9 @@ int main(int argc, char** argv)
         });
         cmds.emplace("exp_N", [&](vstd::string_view str = "1") {
             exp_N = std::stoi(std::string(str));
+        });
+        cmds.emplace("display", [&](vstd::string_view str = "false") {
+            should_display = (str == "true");
         });
         // parse command
         parse_command(cmds, argc, argv, {});
@@ -164,6 +169,8 @@ int main(int argc, char** argv)
     cam.width        = resolution.x;
     cam.height       = resolution.y;
 
+    auto bg_color = luisa::make_float3(0.f);
+
     luisa::compute::CommandList cmd_list;
     lcgs::SHProcessor           sh_processor;
     sh_processor.create(*p_device);
@@ -211,9 +218,17 @@ int main(int argc, char** argv)
     auto   d_img   = p_device->create_buffer<float>(w * h * 3);
     auto   d_radii = p_device->create_buffer<int>(P);
 
+    luisa::unique_ptr<lcgs::Display> display;
+    if (should_display)
+    {
+        exp_N = 0;
+        display = luisa::make_unique<lcgs::Display>(device, stream, cam, bg_color, resolution);
+    }
+
     luisa::log_level_error();
 
-    for (auto exp_i = 0; exp_i < exp_N; exp_i++)
+    auto exp_i = 0;
+    while ((display != nullptr && display->is_running()) || (display == nullptr && exp_i++ < exp_N))
     {
         sh_processor.process(cmd_list, { P, 3, d_pos }, cam, d_sh, d_color, 3, 3);
         projector.forward(cmd_list, { P, d_pos, d_scale, d_rotq, 1.0f }, { d_means_2d, d_covs_2d, d_depth_features }, cam);
@@ -292,7 +307,7 @@ int main(int argc, char** argv)
 
         lcgs::GSTileSplatterInputProxy input{
             .num_gaussians    = P,
-            .bg_color         = luisa::make_float3(0.f),
+            .bg_color         = bg_color,
             .means_2d         = d_means_2d,
             .depth_features   = d_depth_features,
             .conic            = d_covs_2d,
@@ -301,6 +316,13 @@ int main(int argc, char** argv)
         };
 
         int num_rendered = tile_splatter.forward(*p_device, *p_stream, accel, input, output);
+
+        if (display != nullptr)
+        {
+            exp_N++;
+            display->present(d_img);
+        }
+
         LUISA_INFO("num_rendered: {}", num_rendered);
     }
 
