@@ -221,11 +221,12 @@ int main(int argc, char** argv)
     luisa::unique_ptr<lcgs::Display> display;
     if (should_display)
     {
-        exp_N = 0;
+        exp_N   = 0;
         display = luisa::make_unique<lcgs::Display>(device, stream, cam, bg_color, resolution);
     }
 
     luisa::log_level_error();
+    dp.enable_radix_sort<luisa::ulong, luisa::uint>(*p_device);
 
     auto exp_i = 0;
     while ((display != nullptr && display->is_running()) || (display == nullptr && exp_i++ < exp_N))
@@ -268,7 +269,6 @@ int main(int argc, char** argv)
         );
         LUISA_INFO("temp_space_size: {}", temp_space_size);
 
-        dp.enable_radix_sort<luisa::ulong, luisa::uint>(*p_device);
         dp.radix_sort<luisa::ulong, luisa::uint>(
             sort_temp_size,
             d_point_list_keys_unsorted,
