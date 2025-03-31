@@ -12,8 +12,13 @@
 namespace lcgs::test
 {
 
-constexpr float M_PI    = 3.14159265359f;
+#ifndef M_PI
+constexpr float M_PI = 3.14159265359f;
+#endif
+
+#ifndef M_SQRT2
 constexpr float M_SQRT2 = 1.41421356f;
+#endif
 
 // Helper function to check if two float3 values are approximately equal
 bool approx_equal(const luisa::float3& a, const luisa::float3& b, float epsilon = 1e-5f)

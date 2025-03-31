@@ -176,13 +176,13 @@ public:
         std::string_view key = luisa::compute::Type::of<Type4Byte>()->description();
 
         // inclusive sum special postprocess
-        auto* ms_inclusive_spec_it  = ms_inclusive_spec_map.find(key);
-        auto  ms_inclusive_spec_ptr = reinterpret_cast<Shader<1, Buffer<Type4Byte>, Buffer<Type4Byte>>*>(&(*ms_inclusive_spec_it->second));
+        auto ms_inclusive_spec_it  = ms_inclusive_spec_map.find(key);
+        auto ms_inclusive_spec_ptr = reinterpret_cast<Shader<1, Buffer<Type4Byte>, Buffer<Type4Byte>>*>(&(*ms_inclusive_spec_it->second));
         cmdlist << (*ms_inclusive_spec_ptr)(d_out, last_elem_buf).dispatch(num_item);
 
         // apply the initial value
-        auto* ms_add_it  = ms_add_map.find(key);
-        auto  ms_add_ptr = reinterpret_cast<Shader<1, Buffer<Type4Byte>, Type4Byte>*>(&(*ms_add_it->second));
+        auto ms_add_it  = ms_add_map.find(key);
+        auto ms_add_ptr = reinterpret_cast<Shader<1, Buffer<Type4Byte>, Type4Byte>*>(&(*ms_add_it->second));
         cmdlist << (*ms_add_ptr)(d_out, init_v).dispatch(num_item);
     }
 
@@ -223,7 +223,7 @@ public:
         // LUISA_INFO("scan_exclusive_sum done");
         // add for all // brute force
         std::string_view key        = luisa::compute::Type::of<Type4Byte>()->description();
-        auto*            ms_add_it  = ms_add_map.find(key);
+        auto             ms_add_it  = ms_add_map.find(key);
         auto             ms_add_ptr = reinterpret_cast<Shader<1, Buffer<Type4Byte>, Type4Byte>*>(&(*ms_add_it->second));
         cmdlist << (*ms_add_ptr)(d_out, init_v).dispatch(num_item);
     }
@@ -491,7 +491,7 @@ private:
                 store_shared_chunk_to_mem(isNP2, g_odata, s_dataInt, n, ai, bi, mem_ai, mem_bi, bankOffsetA, bankOffsetB);
             }
         );
-        ms_prescan_map.try_emplace(key, std::move(ms_prescan));
+        ms_prescan_map.try_emplace(luisa::string{ key }, std::move(ms_prescan));
 
         luisa::unique_ptr<
             Shader<1, Buffer<Type4Byte>, Buffer<Type4Byte>, int, int, int>>
@@ -526,7 +526,7 @@ private:
             }
         );
 
-        ms_uniform_add_map.try_emplace(key, std::move(ms_uniform_add));
+        ms_uniform_add_map.try_emplace(luisa::string{ key }, std::move(ms_uniform_add));
 
         luisa::unique_ptr<
             Shader<1, Buffer<Type4Byte>, Type4Byte>>
@@ -541,7 +541,8 @@ private:
             }
         );
         ms_add_map.try_emplace(
-            luisa::compute::Type::of<Type4Byte>()->description(), std::move(ms_add)
+            luisa::string{ luisa::compute::Type::of<Type4Byte>()->description() },
+            std::move(ms_add)
         );
 
         luisa::unique_ptr<
@@ -565,7 +566,8 @@ private:
             }
         );
         ms_inclusive_spec_map.try_emplace(
-            luisa::compute::Type::of<Type4Byte>()->description(), std::move(ms_inclusive_spec)
+            luisa::string{ luisa::compute::Type::of<Type4Byte>()->description() },
+            std::move(ms_inclusive_spec)
         );
 
         luisa::unique_ptr<
@@ -590,7 +592,8 @@ private:
         );
 
         ms_reduce_map.try_emplace(
-            luisa::compute::Type::of<Type4Byte>()->description(), std::move(ms_reduce)
+            luisa::string{ luisa::compute::Type::of<Type4Byte>()->description() },
+            std::move(ms_reduce)
         );
     }
 
@@ -649,14 +652,14 @@ private:
             temp_storage.subview(offset, size_elements);
 
         // execute the scan
-        auto  key            = luisa::compute::Type::of<Type4Byte>()->description();
-        auto* ms_prescan_it  = ms_prescan_map.find(key);
-        auto  ms_prescan_ptr = reinterpret_cast<
-             Shader<1, int, int, Buffer<Type4Byte>, Buffer<Type4Byte>, Buffer<Type4Byte>, int, int, int>*>(&(*ms_prescan_it->second));
+        auto key            = luisa::compute::Type::of<Type4Byte>()->description();
+        auto ms_prescan_it  = ms_prescan_map.find(key);
+        auto ms_prescan_ptr = reinterpret_cast<
+            Shader<1, int, int, Buffer<Type4Byte>, Buffer<Type4Byte>, Buffer<Type4Byte>, int, int, int>*>(&(*ms_prescan_it->second));
 
-        auto* ms_uniform_add_it  = ms_uniform_add_map.find(key);
-        auto  ms_uniform_add_ptr = reinterpret_cast<
-             Shader<1, Buffer<Type4Byte>, Buffer<Type4Byte>, int, int, int>*>(&(*ms_uniform_add_it->second));
+        auto ms_uniform_add_it  = ms_uniform_add_map.find(key);
+        auto ms_uniform_add_ptr = reinterpret_cast<
+            Shader<1, Buffer<Type4Byte>, Buffer<Type4Byte>, int, int, int>*>(&(*ms_uniform_add_it->second));
 
         if (num_blocks > 1)
         {
@@ -771,10 +774,10 @@ private:
             temp_storage.subview(offset, size_elements);
 
         // execute the scan
-        auto  key           = luisa::compute::Type::of<Type4Byte>()->description();
-        auto* ms_reduce_it  = ms_reduce_map.find(key);
-        auto  ms_reduce_ptr = reinterpret_cast<
-             ReduceShaderT<Type4Byte>*>(&(*ms_reduce_it->second));
+        auto key           = luisa::compute::Type::of<Type4Byte>()->description();
+        auto ms_reduce_it  = ms_reduce_map.find(key);
+        auto ms_reduce_ptr = reinterpret_cast<
+            ReduceShaderT<Type4Byte>*>(&(*ms_reduce_it->second));
 
         if (num_blocks > 1)
         {
@@ -828,13 +831,13 @@ private:
     {
         auto desc = get_key_value_shader_desc<KeyType, ValueType>();
 
-        auto* ms_radix_sort_cnt_it = ms_radix_sort_cnt_map.find(desc);
-        LUISA_ASSERT(ms_radix_sort_cnt_it, "GET SHADER FAILED");
+        auto ms_radix_sort_cnt_it = ms_radix_sort_cnt_map.find(desc);
+        LUISA_ASSERT(ms_radix_sort_cnt_it != ms_radix_sort_cnt_map.cend(), "GET SHADER FAILED");
         auto ms_radix_sort_cnt_ptr = reinterpret_cast<
             RadixSortCntShader<KeyType, ValueType>*>(&(*ms_radix_sort_cnt_it->second));
 
-        auto* ms_radix_sort_assign_it = ms_radix_sort_assign_map.find(desc);
-        LUISA_ASSERT(ms_radix_sort_assign_it, "GET SHADER FAILED");
+        auto ms_radix_sort_assign_it = ms_radix_sort_assign_map.find(desc);
+        LUISA_ASSERT(ms_radix_sort_assign_it != ms_radix_sort_assign_map.cend(), "GET SHADER FAILED");
 
         auto ms_radix_sort_assign_ptr = reinterpret_cast<
             RadixSortAssignShader<KeyType, ValueType>*>(&(*ms_radix_sort_assign_it->second));

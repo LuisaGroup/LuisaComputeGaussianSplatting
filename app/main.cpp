@@ -109,6 +109,16 @@ int main(int argc, char** argv)
 
     LUISA_INFO("ply_name: {}", ply_name);
     auto world_type_fmt = world_type == WorldType::COLMAP ? "colmap" : "blender";
+
+    {
+        std::error_code ec;
+        std::filesystem::create_directories(out_dir, ec);
+        if (ec)
+        {
+            LUISA_ERROR("Failed to create output directory: {}", ec.message());
+        }
+    }
+
     LUISA_INFO("Rendering {} with backend {}, assuming world type {}", ply_path.string(), backend, world_type_fmt);
     Device  device   = context.create_device(backend.c_str());
     Device* p_device = &device;
@@ -202,7 +212,7 @@ int main(int argc, char** argv)
     auto   d_radii = p_device->create_buffer<int>(P);
 
     luisa::log_level_error();
-    
+
     for (auto exp_i = 0; exp_i < exp_N; exp_i++)
     {
         sh_processor.process(cmd_list, { P, 3, d_pos }, cam, d_sh, d_color, 3, 3);
@@ -282,7 +292,7 @@ int main(int argc, char** argv)
 
         lcgs::GSTileSplatterInputProxy input{
             .num_gaussians    = P,
-            .bg_color         = luisa::make_float3(1.0f, 1.0f, 1.0f),
+            .bg_color         = luisa::make_float3(0.f),
             .means_2d         = d_means_2d,
             .depth_features   = d_depth_features,
             .conic            = d_covs_2d,

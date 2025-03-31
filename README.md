@@ -2,16 +2,35 @@
 
 ## How to start
 
-- get the ply file from Release
-  - mip360_bicycle
-  - nerf_blender_lego
-- generate [LuisaCompute](https://github.com/LuisaGroup/LuisaCompute) Path
+### Build with XMake
+
+- Generate path envs for [LuisaCompute](https://github.com/LuisaGroup/LuisaCompute)
   - create `.env` file by copy `.env.template` file, and modify the `LC_DIR` and `LC_XREPO_DIR` to the LuisaCompute path on your machine
   - `xmake l setup.lua` to generate `lc_options.generated.lua`
-- build 
-  - `xmake` 
-- run
-  - `xmake run lcgs-app --ply=<path_to_your_ply> --backend=<dx/cuda/...> --out=<dir_to_your_out_img>`
+- Build
+  - `xmake`
+  - `lcgs-app` will be generated in `build/bin/` if successful
+
+### Build with CMake
+
+- Configure the project (CMake will download LuisaCompute for you so you don't need to set up the environment)
+  - `cmake -G Ninja -S . -B <build-dir> -D CMAKE_BUILD_TYPE=Release`
+- Build
+  - `cmake --build <build-dir>`
+  - `luisa-gaussian-splatting` will be generated in `<build-dir>/bin/` if successful
+
+### Test
+
+- Get the ply file from Release
+  - [mip360_bicycle](https://github.com/LuisaGroup/LuisaComputeGaussianSplatting/releases/download/v0.1/mip360_bicycle_30000.ply)
+  - [mip360_garden_30000](https://github.com/LuisaGroup/LuisaComputeGaussianSplatting/releases/download/v0.2/mip360_garden_30000.ply)
+  - [nerf_blender_lego](https://github.com/LuisaGroup/LuisaComputeGaussianSplatting/releases/download/v0.1/nerf_blender_lego_30000.ply)
+  - [nerf_blender_chair_30000](https://github.com/LuisaGroup/LuisaComputeGaussianSplatting/releases/download/v0.2/nerf_blender_chair_30000.ply)
+- Run
+  - If you build the project with XMake:
+    - `xmake run lcgs-app --ply=<path_to_your_ply> --backend={dx|cuda|metal} --out=<dir_to_your_out_img>`
+  - If you build the project with CMake:
+    - `<build-dir>/bin/luisa-gaussian-splatting --ply=<path_to_your_ply> --backend={dx|cuda|metal} --out=<dir_to_your_out_img>`
   - an extra optional arg is `--world`, you can choose blender or colmap, the colmap scene has its default up vector (0, -1, 0) and the blender scenes assuming up vector (0, 0, 1). we assume colmap by default.
   - e.g. `xmake run lcgs-app --ply="D:\ws\data\pretrained\gaussian\nerf_blender_chair_30000.ply" --out=D:/ws/data/mid/lcgs/ --backend=dx --world=blender`
   - e.g. `xmake run lcgs-app --ply="D:\ws\data\pretrained\gaussian\mip360_bicycle_30000.ply" --out=D:/ws/data/mid/lcgs/ --backend=dx`

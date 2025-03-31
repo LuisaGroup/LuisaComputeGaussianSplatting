@@ -6,6 +6,8 @@
  */
 
 #include <cmath>
+#include <cstdint>
+
 #include "lcgs/config.h"
 
 namespace lcgs
