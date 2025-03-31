@@ -36,6 +36,14 @@
   - e.g. `xmake run lcgs-app --ply="D:\ws\data\pretrained\gaussian\mip360_bicycle_30000.ply" --out=D:/ws/data/mid/lcgs/ --backend=dx`
   - then you can check `<dir_to_your_out_img>` with `<ply_name>_<dx/cuda...>.png` for the result, e.g. `mip360_bicycle_30000_dx.png`
 
+### Interactive Display
+
+You can run the app with `--display=true` to enable interactive display. You can use the following controls:
+- `WASD` to move the camera
+- Drag the mouse with the left button to orient the camera
+- Drag the mouse with the right button to rotate the camera around the center
+- Tweak the sliders on the GUI panel to adjust the camera move speed, rotation speed, and field of view.
+
 ## Result
 
 ### lego
