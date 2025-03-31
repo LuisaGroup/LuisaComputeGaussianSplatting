@@ -1,7 +1,7 @@
 //
 // Created by mike on 3/31/25.
 //
-
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include "display.h"
 
@@ -49,6 +49,7 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
         auto p_max    = p_min +
                      ImVec2{ static_cast<float>(_framebuffer.size().x),
                              static_cast<float>(_framebuffer.size().y) };
+
         ImGui::GetBackgroundDrawList()->AddImage(_framebuffer_handle, p_min, p_max, { 0.f, 1.f }, { 1.f, 0.f });
 
         ImGui::Begin("Control");

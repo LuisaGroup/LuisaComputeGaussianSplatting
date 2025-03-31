@@ -1,6 +1,7 @@
 #pragma once
 
 #include <luisa/luisa-compute.h>
+#include <luisa/gui/imgui_window.h>
 #include <lcgs/util/camera.h>
 
 namespace lcgs
