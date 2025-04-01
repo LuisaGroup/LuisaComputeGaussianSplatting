@@ -64,8 +64,8 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
             {
                 auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
                 auto fov = luisa::radians(_camera.fov);
-                _camera.front += 4.f * _camera_rotate_speed * (delta.x / viewport->Size.x) * _camera.right;
-                _camera.front -= 4.f * _camera_rotate_speed * (delta.y / viewport->Size.y) * _camera.up;
+                _camera.front += 4.f * _camera_rotate_speed * (delta.x / viewport->Size.x) * _camera.right * fov;
+                _camera.front -= 4.f * _camera_rotate_speed * (delta.y / viewport->Size.y) * _camera.up * fov;
                 camera_dirty = true;
                 ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
             }
