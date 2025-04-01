@@ -42,6 +42,7 @@ You can run the app with `--display=true` to enable interactive display. You can
 - `WASD` to move the camera
 - Drag the mouse with the left button to orient the camera
 - Drag the mouse with the right button to rotate the camera around the center
+- Mouse wheel to zoom in/out (change the field of view)
 - Tweak the sliders on the GUI panel to adjust the camera move speed, rotation speed, and field of view.
 
 ## Result

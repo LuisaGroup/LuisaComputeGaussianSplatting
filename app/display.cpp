@@ -53,6 +53,9 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
         // enable main window docking
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
 
+        constexpr auto fov_min = 1.f;
+        constexpr auto fov_max = 150.f;
+
         auto viewport     = ImGui::GetMainViewport();
         auto camera_dirty = false;
         if (!ImGui::GetIO().WantCaptureMouse)
@@ -81,6 +84,12 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
                     camera_dirty = true;
                     ImGui::ResetMouseDragDelta(ImGuiMouseButton_Right);
                 }
+            }
+            if (ImGui::GetIO().MouseWheel != 0.f)
+            {
+                auto delta = ImGui::GetIO().MouseWheel * _camera_rotate_speed * .1f;
+                _camera.fov = std::clamp(_camera.fov * std::exp2(delta), fov_min, fov_max);
+                camera_dirty = true;
             }
         }
 
@@ -116,21 +125,22 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
 
         if (camera_dirty)
         {
-            // _camera = get_lookat_cam(_camera.position, _camera.position + _camera.front, _camera.up);
-            _camera.front = luisa::normalize(_camera.front);
-            _camera.right = luisa::normalize(luisa::cross(_camera.front, _camera.up));
-            _camera.up    = luisa::normalize(luisa::cross(_camera.right, _camera.front));
+            auto camera   = get_lookat_cam(_camera.position, _camera.position + _camera.front, _camera.up);
+            _camera.front = camera.front;
+            _camera.right = camera.right;
+            _camera.up    = camera.up;
         }
 
         ImGui::SetNextWindowBgAlpha(.5f);
         ImGui::Begin("Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         {
+            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
             ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", _camera.position.x, _camera.position.y, _camera.position.z);
             ImGui::Text("Camera Front: (%.2f, %.2f, %.2f)", _camera.front.x, _camera.front.y, _camera.front.z);
             ImGui::Text("Camera Up: (%.2f, %.2f, %.2f)", _camera.up.x, _camera.up.y, _camera.up.z);
-            ImGui::SliderFloat("Camera FOV", &_camera.fov, 10.f, 150.f, "%.1f", ImGuiSliderFlags_Logarithmic);
-            ImGui::SliderFloat("Camera Move Speed", &_camera_move_speed, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_Logarithmic);
-            ImGui::SliderFloat("Camera Rotate Speed", &_camera_rotate_speed, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_Logarithmic);
+            ImGui::SliderFloat("Camera FOV", &_camera.fov, fov_min, fov_max, "%.1f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
+            ImGui::SliderFloat("Camera Move Speed", &_camera_move_speed, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
+            ImGui::SliderFloat("Camera Rotate Speed", &_camera_rotate_speed, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
             ImGui::ColorPicker3("Background", &_bg_color.x, ImGuiColorEditFlags_Float);
         }
         ImGui::End();
