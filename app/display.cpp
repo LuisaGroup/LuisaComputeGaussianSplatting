@@ -20,7 +20,7 @@ Display::Display(luisa::compute::Device& device, luisa::compute::Stream& stream,
     , _camera{ camera }
     , _bg_color{ bg_color }
     , _camera_move_speed{ 1.f }
-    , _camera_rotate_speed{ 2.f }
+    , _camera_rotate_speed{ 1.f }
     , _framebuffer_handle{}
 {
     ImGuiWindow::Config config{ .size = resolution, .resizable = false, .vsync = true, .hdr = false, .ssaa = false, .docking = true, .multi_viewport = false, .back_buffers = 2 };
@@ -63,8 +63,9 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
             if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
             {
                 auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-                _camera.front += .5f * _camera_rotate_speed * (delta.x / viewport->Size.x) * _camera.right;
-                _camera.front -= .5f * _camera_rotate_speed * (delta.y / viewport->Size.y) * _camera.up;
+                auto fov = luisa::radians(_camera.fov);
+                _camera.front += 4.f * _camera_rotate_speed * (delta.x / viewport->Size.x) * _camera.right;
+                _camera.front -= 4.f * _camera_rotate_speed * (delta.y / viewport->Size.y) * _camera.up;
                 camera_dirty = true;
                 ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
             }
