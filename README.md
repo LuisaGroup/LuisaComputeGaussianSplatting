@@ -39,7 +39,8 @@
 ### Interactive Display
 
 You can run the app with `--display=true` to enable interactive display. You can use the following controls:
-- `WASD` to move the camera
+- `W/S/A/D` to move the camera forward/backward/left/right
+- `Esc` to exit the app
 - Drag the mouse with the left button to orient the camera
 - Drag the mouse with the right button to rotate the camera around the center
 - Mouse wheel to zoom in/out (change the field of view)
