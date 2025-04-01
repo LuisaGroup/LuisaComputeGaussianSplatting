@@ -50,23 +50,24 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
 {
     _stream << _transpose_shader(d_img, _framebuffer).dispatch(_framebuffer.size());
     _window.with_frame([&] {
-        auto size = ImVec2{ static_cast<float>(_framebuffer.size().x),
-                            static_cast<float>(_framebuffer.size().y) };
+        // enable main window docking
+        ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
 
+        auto viewport     = ImGui::GetMainViewport();
         auto camera_dirty = false;
         if (!ImGui::GetIO().WantCaptureMouse)
         {
             if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
             {
                 auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-                _camera.front += .5f * _camera_rotate_speed * (delta.x / size.x) * _camera.right;
-                _camera.front -= .5f * _camera_rotate_speed * (delta.y / size.y) * _camera.up;
+                _camera.front += .5f * _camera_rotate_speed * (delta.x / viewport->Size.x) * _camera.right;
+                _camera.front -= .5f * _camera_rotate_speed * (delta.y / viewport->Size.y) * _camera.up;
                 camera_dirty = true;
                 ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
             }
             if (ImGui::IsMouseDragging(ImGuiMouseButton_Right))
             {
-                auto p_now  = ImGui::GetMousePos() - ImVec2{ .5f, .5f } * size;
+                auto p_now  = ImGui::GetMousePos() - ImVec2{ .5f, .5f } * viewport->Size;
                 auto p_prev = p_now - ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
                 auto v_now  = luisa::normalize(luisa::make_float3(p_now.x, p_now.y, 0.f));
                 auto v_prev = luisa::normalize(luisa::make_float3(p_prev.x, p_prev.y, 0.f));
@@ -90,7 +91,6 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
 
         if (!ImGui::GetIO().WantCaptureKeyboard)
         {
-
             auto dt = ImGui::GetIO().DeltaTime;
             if (ImGui::IsKeyDown(ImGuiKey_W))
             {
@@ -122,20 +122,22 @@ void Display::present(luisa::compute::BufferView<float> d_img) noexcept
             _camera.up    = luisa::normalize(luisa::cross(_camera.right, _camera.front));
         }
 
-        auto viewport = ImGui::GetMainViewport();
-        auto p_min    = ImVec2{ viewport->Pos.x, viewport->Pos.y };
-        auto p_max    = p_min + size;
-
-        ImGui::GetBackgroundDrawList()->AddImage(_framebuffer_handle, p_min, p_max, { 0.f, 1.f }, { 1.f, 0.f });
-
-        ImGui::Begin("Control");
+        ImGui::SetNextWindowBgAlpha(.5f);
+        ImGui::Begin("Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         {
+            ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", _camera.position.x, _camera.position.y, _camera.position.z);
+            ImGui::Text("Camera Front: (%.2f, %.2f, %.2f)", _camera.front.x, _camera.front.y, _camera.front.z);
+            ImGui::Text("Camera Up: (%.2f, %.2f, %.2f)", _camera.up.x, _camera.up.y, _camera.up.z);
+            ImGui::SliderFloat("Camera FOV", &_camera.fov, 10.f, 150.f, "%.1f", ImGuiSliderFlags_Logarithmic);
             ImGui::SliderFloat("Camera Move Speed", &_camera_move_speed, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_Logarithmic);
             ImGui::SliderFloat("Camera Rotate Speed", &_camera_rotate_speed, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_Logarithmic);
-            ImGui::SliderFloat("Camera FOV", &_camera.fov, 10.f, 150.f, "%.1f", ImGuiSliderFlags_Logarithmic);
             ImGui::ColorPicker3("Background", &_bg_color.x, ImGuiColorEditFlags_Float);
         }
         ImGui::End();
+
+        auto p_min = ImVec2{ viewport->Pos.x, viewport->Pos.y };
+        auto p_max = p_min + viewport->Size;
+        ImGui::GetBackgroundDrawList()->AddImage(_framebuffer_handle, p_min, p_max, ImVec2{ 0.f, 1.f }, ImVec2{ 1.f, 0.f });
     });
 }
 
