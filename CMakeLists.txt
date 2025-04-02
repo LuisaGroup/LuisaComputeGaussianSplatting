@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.26)
 
 set(CMAKE_CXX_STANDARD 20)
 
+project(GaussianSplatting)
+
 if (NOT TARGET luisa::compute)
     # download LuisaCompute from github.com/LuisaGroup/LuisaCompute.git to the build directory
     include(FetchContent)
@@ -13,15 +15,15 @@ if (NOT TARGET luisa::compute)
 
     include(${LuisaCompute_SOURCE_DIR}/scripts/setup_output_dirs.cmake)
 
-    project(GaussianSplatting)
-
     # add LuisaCompute as a subdirectory
-    set(LUISA_COMPUTE_BUILD_TESTS OFF CACHE BOOL "Disable LuisaCompute tests")
-    set(LUISA_COMPUTE_DOWNLOAD_NVCOMP OFF CACHE BOOL "Disable nvcomp download")
-    set(LUISA_COMPUTE_USE_SYSTEM_STL ON CACHE BOOL "Use system STL")
-    set(LUISA_COMPUTE_ENABLE_RUST OFF CACHE BOOL "Disable Rust bindings")
-    set(LUISA_COMPUTE_ENABLE_CPU OFF CACHE BOOL "Disable CPU backend")
-    set(LUISA_COMPUTE_ENABLE_REMOTE OFF CACHE BOOL "Disable remote backend")
+    set(LUISA_COMPUTE_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(LUISA_COMPUTE_DOWNLOAD_NVCOMP OFF CACHE BOOL "" FORCE)
+    set(LUISA_COMPUTE_USE_SYSTEM_STL ON CACHE BOOL "" FORCE)
+    set(LUISA_COMPUTE_ENABLE_RUST OFF CACHE BOOL "" FORCE)
+    set(LUISA_COMPUTE_ENABLE_CPU OFF CACHE BOOL "" FORCE)
+    set(LUISA_COMPUTE_ENABLE_REMOTE OFF CACHE BOOL "" FORCE)
+    set(LUISA_COMPUTE_ENABLE_GUI ON CACHE BOOL "" FORCE)
+    set(LUISA_COMPUTE_ENABLE_WAYLAND ON CACHE BOOL "" FORCE)
     add_subdirectory(${LuisaCompute_SOURCE_DIR})
 endif ()
 
