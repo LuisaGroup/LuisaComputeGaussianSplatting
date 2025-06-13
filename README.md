@@ -9,7 +9,8 @@
   - `xmake l setup.lua` to generate `lc_options.generated.lua`
 - Build
   - `xmake`
-  - `lcgs-app` will be generated in `build/bin/` if successful
+  - `lcgs-app` will be generated in `build/<platform>/<mode>/lcgs-app.exe` if successful, you may run it with
+  - `xmake run lcgs-app --help`
 
 ### Build with CMake
 
@@ -29,11 +30,12 @@
 - Run
   - If you build the project with XMake:
     - `xmake run lcgs-app --ply=<path_to_your_ply> --backend={dx|cuda|metal} --out=<dir_to_your_out_img>`
+    - e.g. `xmake run lcgs-app --ply="E:\ws\data\pretrained\gaussian\nerf_blender_chair_30000.ply" --out=E:/ws/data/mid/lcgs/ --backend=dx --world=blender`
+    - e.g. `xmake run lcgs-app --ply="E:\ws\data\pretrained\gaussian\mip360_bicycle_30000.ply" --out=E:/ws/data/mid/lcgs/ --backend=dx`
   - If you build the project with CMake:
     - `<build-dir>/bin/luisa-gaussian-splatting --ply=<path_to_your_ply> --backend={dx|cuda|metal} --out=<dir_to_your_out_img>`
+  - you can run with `--help` to get the help info
   - an extra optional arg is `--world`, you can choose blender or colmap, the colmap scene has its default up vector (0, -1, 0) and the blender scenes assuming up vector (0, 0, 1). we assume colmap by default.
-  - e.g. `xmake run lcgs-app --ply="D:\ws\data\pretrained\gaussian\nerf_blender_chair_30000.ply" --out=D:/ws/data/mid/lcgs/ --backend=dx --world=blender`
-  - e.g. `xmake run lcgs-app --ply="D:\ws\data\pretrained\gaussian\mip360_bicycle_30000.ply" --out=D:/ws/data/mid/lcgs/ --backend=dx`
   - then you can check `<dir_to_your_out_img>` with `<ply_name>_<dx/cuda...>.png` for the result, e.g. `mip360_bicycle_30000_dx.png`
 
 ### Interactive Display

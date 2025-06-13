@@ -49,6 +49,19 @@ int main(int argc, char** argv)
     // validate command line args
     {
         vstd::HashMap<vstd::string, vstd::function<void(vstd::string_view)>> cmds;
+        cmds.emplace("help", [&](vstd::string_view) {
+            LUISA_INFO("Usage: {} [options]", argv[0]);
+            LUISA_INFO("Options:");
+            LUISA_INFO("  --help, -h          Show this help message");
+            LUISA_INFO("  --res <width>x<height> Set the resolution (default: {}x{})", resolution.x, resolution.y);
+            LUISA_INFO("  --ply <path>        Set the path to the PLY file (default: {})", default_ply_path);
+            LUISA_INFO("  --backend <name>    Set the backend (default: {})", backend);
+            LUISA_INFO("  --out <dir>         Set the output directory (default: {})", out_dir);
+            LUISA_INFO("  --world <type>      Set the world type (colmap or blender, default: colmap)");
+            LUISA_INFO("  --exp_N <N>         Set the number of experiments (default: {})", exp_N);
+            LUISA_INFO("  --display <true|false> Enable or disable gui display (default: false)");
+            exit(0);
+        });
         cmds.emplace("ply", [&](vstd::string_view str) {
             luisa::filesystem::path path{ str };
             if (path.is_relative())
