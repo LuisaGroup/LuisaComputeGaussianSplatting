@@ -46,6 +46,10 @@ void DeviceParallel::get_temp_size_scan(size_t& temp_storage_size, size_t num_it
         num_elements = num_blocks;
     } while (num_elements > 1);
     temp_storage_size += 1;
+    
+    // Align to 16 bytes (4 elements for uint32_t buffer)
+    // This ensures that subview offsets are properly aligned
+    temp_storage_size = (temp_storage_size + 3) & ~3;
 }
 
 } // namespace lcgs
