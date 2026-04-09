@@ -17,7 +17,8 @@
 #include "lcgs/sh_preprocessor.h"
 #include "lcgs/util/buffer_filler.h"
 #include "lcgs/util/camera.h"
-#include "lcgs/util/device_parallel.h"
+#include <lcpp/device/device_scan.h>
+#include <lcpp/device/device_radix_sort.h>
 #include "luisa/runtime/rhi/stream_tag.h"
 #include "display.h"
 #include <stb/stb_image_write.h>
@@ -49,18 +50,33 @@ int main(int argc, char** argv)
     // validate command line args
     {
         vstd::HashMap<vstd::string, vstd::function<void(vstd::string_view)>> cmds;
-        cmds.emplace("help", [&](vstd::string_view) {
+        auto help_fn = [&](vstd::string_view) {
             LUISA_INFO("Usage: {} [options]", argv[0]);
             LUISA_INFO("Options:");
-            LUISA_INFO("  --help, -h          Show this help message");
-            LUISA_INFO("  --res <width>x<height> Set the resolution (default: {}x{})", resolution.x, resolution.y);
-            LUISA_INFO("  --ply <path>        Set the path to the PLY file (default: {})", default_ply_path);
-            LUISA_INFO("  --backend <name>    Set the backend (default: {})", backend);
-            LUISA_INFO("  --out <dir>         Set the output directory (default: {})", out_dir);
-            LUISA_INFO("  --world <type>      Set the world type (colmap or blender, default: colmap)");
-            LUISA_INFO("  --exp_N <N>         Set the number of experiments (default: {})", exp_N);
-            LUISA_INFO("  --display <true|false> Enable or disable gui display (default: false)");
+            LUISA_INFO("  --help / -h              Show this help message");
+            LUISA_INFO("  --res <width>x<height>   Set the resolution (default: {}x{})", resolution.x, resolution.y);
+            LUISA_INFO("  --ply <path>             Set the path to the PLY file (default: {})", default_ply_path);
+            LUISA_INFO("  --backend <name>         Set the backend (default: {})", backend);
+            LUISA_INFO("  --out <dir>              Set the output directory (default: {})", out_dir);
+            LUISA_INFO("  --world <type>           Set the world type (colmap or blender, default: colmap)");
+            LUISA_INFO("  --exp_N <N>              Set the number of experiments (default: {})", exp_N);
+            LUISA_INFO("  --display                Enable gui display (default: off)");
             exit(0);
+        };
+        cmds.emplace("help", help_fn);
+        cmds.emplace("h", help_fn);
+        cmds.emplace("res", [&](vstd::string_view str) {
+            // parse <width>x<height>
+            auto xpos = str.find('x');
+            if (xpos == vstd::string_view::npos)
+            {
+                LUISA_ERROR("Invalid resolution format: '{}'. Expected <width>x<height>", str);
+            }
+            auto w_str = std::string(str.substr(0, xpos));
+            auto h_str = std::string(str.substr(xpos + 1));
+            resolution = luisa::make_uint2(
+                static_cast<uint>(std::stoi(w_str)),
+                static_cast<uint>(std::stoi(h_str)));
         });
         cmds.emplace("ply", [&](vstd::string_view str) {
             luisa::filesystem::path path{ str };
@@ -79,8 +95,8 @@ int main(int argc, char** argv)
         cmds.emplace("out", [&](vstd::string_view str) {
             out_dir = str;
         });
-        cmds.emplace("world", [&](vstd::string_view str = "colmap") {
-            if (str == "colmap")
+        cmds.emplace("world", [&](vstd::string_view str) {
+            if (str == "colmap" || str.empty())
             {
                 world_type = WorldType::COLMAP;
             }
@@ -93,11 +109,15 @@ int main(int argc, char** argv)
                 LUISA_ERROR("Invalid world type: {}", str);
             }
         });
-        cmds.emplace("exp_N", [&](vstd::string_view str = "1") {
+        cmds.emplace("exp_N", [&](vstd::string_view str) {
+            if (str.empty())
+            {
+                LUISA_ERROR("--exp_N requires a value");
+            }
             exp_N = std::stoi(std::string(str));
         });
-        cmds.emplace("display", [&](vstd::string_view str = "false") {
-            should_display = (str == "true");
+        cmds.emplace("display", [&](vstd::string_view) {
+            should_display = true;
         });
         // parse command
         parse_command(cmds, argc, argv, {});
@@ -150,8 +170,10 @@ int main(int argc, char** argv)
     lcgs::GSProjector projector;
     projector.create(device);
     lcgs::BufferFiller   bf;
-    lcgs::DeviceParallel dp;
-    dp.create(device);
+    luisa::parallel_primitive::DeviceScan<>      device_scan;
+    luisa::parallel_primitive::DeviceRadixSort<>  device_radix_sort;
+    device_scan.create(device);
+    device_radix_sort.create(device);
 
     auto d_pos   = p_device->create_buffer<float>(P * 3);
     auto d_scale = p_device->create_buffer<float>(P * 3);
@@ -201,11 +223,11 @@ int main(int argc, char** argv)
 
     luisa::Clock clk;
     clk.tic();
-    size_t               temp_space_size;
     lcgs::GSTileSplatter tile_splatter;
     tile_splatter.create(*p_device);
     tile_splatter.set_buffer_filler(&bf);
-    tile_splatter.set_device_parallel(&dp);
+    tile_splatter.set_device_scan(&device_scan);
+    tile_splatter.set_device_radix_sort(&device_radix_sort);
     auto d_means_2d       = p_device->create_buffer<float>(P * 2);
     auto d_depth_features = p_device->create_buffer<float>(P);
     auto d_covs_2d        = p_device->create_buffer<float>(P * 3);
@@ -227,7 +249,6 @@ int main(int argc, char** argv)
     auto d_point_list               = p_device->create_buffer<uint>(L);
     auto d_ranges                   = p_device->create_buffer<uint>(TWH.x * TWH.y * 2);
 
-    size_t sort_temp_size;
     auto   d_img   = p_device->create_buffer<float>(w * h * 3);
     auto   d_radii = p_device->create_buffer<int>(P);
 
@@ -239,7 +260,6 @@ int main(int argc, char** argv)
     }
 
     luisa::log_level_error();
-    dp.enable_radix_sort<luisa::ulong, luisa::uint>(*p_device);
 
     auto exp_i = 0;
     while ((display != nullptr && display->is_running()) || (display == nullptr && exp_i++ < exp_N))
@@ -247,32 +267,6 @@ int main(int argc, char** argv)
         sh_processor.process(cmd_list, { P, 3, d_pos }, cam, d_sh, d_color, 3, 3);
         projector.forward(cmd_list, { P, d_pos, d_scale, d_rotq, 1.0f }, { d_means_2d, d_covs_2d, d_depth_features }, cam);
         (*p_stream) << cmd_list.commit();
-
-        // fist call inclusive sum and radix sort for temp storage
-        {
-            dp.scan_inclusive_sum<uint>(
-                temp_space_size,
-                d_tiles_touched,
-                d_points_offset, 0, P
-            );
-            LUISA_INFO("temp_space_size: {}", temp_space_size);
-            dp.radix_sort<luisa::ulong, luisa::uint>(
-                sort_temp_size,
-                d_point_list_keys_unsorted,
-                d_point_list_unsorted,
-                d_point_list_keys,
-                d_point_list,
-                L, 64
-            );
-            LUISA_INFO("sort_temp_size: {0}", sort_temp_size);
-
-            if (sort_temp_size > temp_space_size)
-            {
-                temp_space_size = sort_temp_size;
-            }
-        }
-        // allocate temp storage size
-        auto temp_storage = p_device->create_buffer<uint>(temp_space_size);
 
         lcgs::GSSplatForwardOutputProxy output{
             .height     = h,
@@ -282,7 +276,6 @@ int main(int argc, char** argv)
         };
 
         lcgs::GSTileSplatterAccelProxy accel{
-            .temp_storage             = temp_storage,
             .tiles_touched            = d_tiles_touched,
             .point_offsets            = d_points_offset,
             .point_list_keys_unsorted = d_point_list_keys_unsorted,

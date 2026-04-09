@@ -4,6 +4,7 @@ target("lcgs")
     })
     add_deps("lc-core", "lc-runtime", "lc-vstl")
     add_deps("lc-dsl", "lc-backends-dummy")
+    add_deps("lcpp")
     add_defines("LCGS_DLL_EXPORTS")
 
     add_includedirs("include", { public = true })

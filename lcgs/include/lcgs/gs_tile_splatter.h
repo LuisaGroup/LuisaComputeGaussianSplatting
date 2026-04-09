@@ -10,7 +10,8 @@
 #include "lcgs/module.h"
 #include "lcgs/proxy.h"
 #include "lcgs/util/buffer_filler.h"
-#include "lcgs/util/device_parallel.h"
+#include <lcpp/device/device_scan.h>
+#include <lcpp/device/device_radix_sort.h>
 #include "proxy.h"
 
 namespace lcgs
@@ -35,8 +36,11 @@ public:
 
     BufferFiller*   mp_buffer_filler;
     void            set_buffer_filler(BufferFiller* buffer_filler) noexcept { mp_buffer_filler = buffer_filler; }
-    DeviceParallel* mp_device_parallel;
-    void            set_device_parallel(DeviceParallel* device_parallel) noexcept { mp_device_parallel = device_parallel; }
+
+    luisa::parallel_primitive::DeviceScan<>*      mp_device_scan = nullptr;
+    luisa::parallel_primitive::DeviceRadixSort<>*  mp_device_radix_sort = nullptr;
+    void set_device_scan(luisa::parallel_primitive::DeviceScan<>* scan) noexcept { mp_device_scan = scan; }
+    void set_device_radix_sort(luisa::parallel_primitive::DeviceRadixSort<>* sort) noexcept { mp_device_radix_sort = sort; }
 
 protected:
     virtual void compile(Device& device) noexcept;

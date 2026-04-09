@@ -30,13 +30,15 @@ lc_options = {
     lc_enable_tests = false,
     lc_external_marl = false,
     lc_dx_cuda_interop = false,
-    lc_backend_lto = false,
-    lc_sdk_dir = "\"\"",
+    lc_backend_lto = false
 }
 
 local file = io.open("lc_options.generated.lua", "w")
 file:write("lc_dir = ")
 file:write(env.LC_DIR)
+file:write("\n")
+file:write("lcpp_dir = ")
+file:write(env.LCPP_DIR)
 file:write("\n")
 file:write("lc_options = {\n")
 for key, value in pairs(lc_options) do

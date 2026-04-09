@@ -56,7 +56,6 @@ struct GSTileSplatterInputProxy {
 };
 
 struct GSTileSplatterAccelProxy {
-    luisa::compute::BufferView<uint32_t>     temp_storage;
     luisa::compute::BufferView<luisa::uint>  tiles_touched;            // P
     luisa::compute::BufferView<luisa::uint>  point_offsets;            // P
     luisa::compute::BufferView<luisa::ulong> point_list_keys_unsorted; // L

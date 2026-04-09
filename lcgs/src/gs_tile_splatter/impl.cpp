@@ -45,7 +45,6 @@ int GSTileSplatter::forward(
 
     CommandList cmdlist;
 
-    // screen_state->tile state->image state
     cmdlist
         << (*shad_allocate_tiles)(
                num_gaussians,
@@ -60,14 +59,7 @@ int GSTileSplatter::forward(
            )
                .dispatch(num_gaussians);
 
-    // inclusive scan
-    mp_device_parallel->scan_inclusive_sum<uint>(
-        cmdlist,
-        accel.temp_storage,
-        d_tiles_touched,
-        d_point_offsets,
-        0, num_gaussians
-    );
+    mp_device_scan->InclusiveSum(cmdlist, stream, d_tiles_touched, d_point_offsets, num_gaussians);
 
     cmdlist << accel.point_offsets.subview(input.num_gaussians - 1, 1).copy_to(&num_rendered);
     stream << cmdlist.commit() << synchronize();
@@ -81,11 +73,9 @@ int GSTileSplatter::forward(
     auto d_point_list               = accel.point_list.subview(0, num_rendered);
     auto d_point_list_keys          = accel.point_list_keys.subview(0, num_rendered);
 
-    // init point list keys to 0
     cmdlist << mp_buffer_filler->fill(device, d_point_list_unsorted, 0u);
     cmdlist << mp_buffer_filler->fill(device, d_point_list_keys_unsorted, 0ull);
 
-    // duplicate keys
     cmdlist << (*shad_copy_with_keys)(
                    num_gaussians,
                    input.means_2d,
@@ -98,24 +88,19 @@ int GSTileSplatter::forward(
     )
                    .dispatch(num_gaussians);
 
-    // sort keys
-    int bits = get_higher_msb(grids.x * grids.y) + 32;
-    mp_device_parallel->radix_sort<ulong, uint>(
-        cmdlist,
-        accel.point_list_keys_unsorted,
-        accel.point_list_unsorted,
-        accel.point_list_keys,
-        accel.point_list,
-        accel.temp_storage,
-        num_rendered, bits
+    mp_device_radix_sort->SortPairs<ulong, uint>(
+        cmdlist, stream,
+        d_point_list_keys_unsorted,
+        d_point_list_keys,
+        d_point_list_unsorted,
+        d_point_list,
+        num_rendered
     );
-    stream << cmdlist.commit();
 
     auto d_ranges = accel.ranges.subview(0, grids.x * grids.y * 2);
 
     cmdlist << mp_buffer_filler->fill(device, d_ranges, 0u);
 
-    // get range
     LUISA_INFO("get ranges");
     cmdlist
         << (*shad_get_ranges)(
@@ -134,10 +119,8 @@ int GSTileSplatter::forward(
                output.target_img,
                grids,
                input.bg_color,
-               // accel structure
                accel.ranges,
                accel.point_list,
-               // payload
                input.means_2d,
                input.conic,
                input.opacity_features,

@@ -27,6 +27,10 @@ if (NOT TARGET luisa::compute)
     add_subdirectory(${LuisaCompute_SOURCE_DIR})
 endif ()
 
+# LCPP (header-only parallel primitives, shares LuisaCompute via luisa::compute)
+set(LCPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lc_parallel_primitive ${CMAKE_CURRENT_BINARY_DIR}/lcpp)
+
 # lib
 file(GLOB_RECURSE LUISA_GAUSSIAN_SPLATTING_LIB_SOURCES CONFIGURE_DEPENDS lcgs/src/*.cpp)
 file(GLOB_RECURSE LUISA_GAUSSIAN_SPLATTING_LIB_HEADERS CONFIGURE_DEPENDS lcgs/include/*.h)
@@ -34,7 +38,7 @@ add_library(luisa-gaussian-splatting-lib SHARED ${LUISA_GAUSSIAN_SPLATTING_LIB_S
 set_target_properties(luisa-gaussian-splatting-lib PROPERTIES PUBLIC_HEADER "${LUISA_GAUSSIAN_SPLATTING_LIB_HEADERS}")
 target_compile_definitions(luisa-gaussian-splatting-lib PRIVATE LCGS_DLL_EXPORTS=1)
 target_include_directories(luisa-gaussian-splatting-lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lcgs/include>)
-target_link_libraries(luisa-gaussian-splatting-lib PUBLIC luisa::compute)
+target_link_libraries(luisa-gaussian-splatting-lib PUBLIC luisa::compute lcpp)
 
 # test
 file(GLOB_RECURSE LUISA_GAUSSIAN_SPLATTING_TEST_SOURCES CONFIGURE_DEPENDS test/*.cpp)
