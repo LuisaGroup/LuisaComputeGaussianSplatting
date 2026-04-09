@@ -128,6 +128,7 @@ int GSTileSplatter::forward(
                .dispatch(resolution);
 
     // stream << cmdlist.commit() << synchronize();
+    stream << cmdlist.commit();
 
     return num_rendered;
 }
