@@ -50,7 +50,7 @@ int main(int argc, char** argv)
     // validate command line args
     {
         vstd::HashMap<vstd::string, vstd::function<void(vstd::string_view)>> cmds;
-        auto help_fn = [&](vstd::string_view) {
+        auto                                                                 help_fn = [&](vstd::string_view) {
             LUISA_INFO("Usage: {} [options]", argv[0]);
             LUISA_INFO("Options:");
             LUISA_INFO("  --help / -h              Show this help message");
@@ -76,7 +76,8 @@ int main(int argc, char** argv)
             auto h_str = std::string(str.substr(xpos + 1));
             resolution = luisa::make_uint2(
                 static_cast<uint>(std::stoi(w_str)),
-                static_cast<uint>(std::stoi(h_str)));
+                static_cast<uint>(std::stoi(h_str))
+            );
         });
         cmds.emplace("ply", [&](vstd::string_view str) {
             luisa::filesystem::path path{ str };
@@ -169,9 +170,9 @@ int main(int argc, char** argv)
 
     lcgs::GSProjector projector;
     projector.create(device);
-    lcgs::BufferFiller   bf;
+    lcgs::BufferFiller                           bf;
     luisa::parallel_primitive::DeviceScan<>      device_scan;
-    luisa::parallel_primitive::DeviceRadixSort<>  device_radix_sort;
+    luisa::parallel_primitive::DeviceRadixSort<> device_radix_sort;
     device_scan.create(device);
     device_radix_sort.create(device);
 
@@ -249,8 +250,8 @@ int main(int argc, char** argv)
     auto d_point_list               = p_device->create_buffer<uint>(L);
     auto d_ranges                   = p_device->create_buffer<uint>(TWH.x * TWH.y * 2);
 
-    auto   d_img   = p_device->create_buffer<float>(w * h * 3);
-    auto   d_radii = p_device->create_buffer<int>(P);
+    auto d_img   = p_device->create_buffer<float>(w * h * 3);
+    auto d_radii = p_device->create_buffer<int>(P);
 
     luisa::unique_ptr<lcgs::Display> display;
     if (should_display)
@@ -303,7 +304,7 @@ int main(int argc, char** argv)
             display->present(d_img);
         }
 
-        LUISA_INFO("num_rendered: {}", num_rendered);
+        // LUISA_INFO("num_rendered: {}", num_rendered);
     }
 
     luisa::vector<float> h_img(w * h * 3);

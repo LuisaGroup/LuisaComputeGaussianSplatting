@@ -65,7 +65,6 @@ int GSTileSplatter::forward(
     stream << cmdlist.commit() << synchronize();
 
     if (num_rendered <= 0) { return 0; }
-
     LUISA_INFO("num_rendered: {}", num_rendered);
 
     auto d_point_list_unsorted      = accel.point_list_unsorted.subview(0, num_rendered);
@@ -128,7 +127,7 @@ int GSTileSplatter::forward(
            )
                .dispatch(resolution);
 
-    stream << cmdlist.commit() << synchronize();
+    // stream << cmdlist.commit() << synchronize();
 
     return num_rendered;
 }
