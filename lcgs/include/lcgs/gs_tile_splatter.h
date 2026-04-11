@@ -42,6 +42,18 @@ public:
     void                                          set_device_scan(luisa::parallel_primitive::DeviceScan<>* scan) noexcept { mp_device_scan = scan; }
     void                                          set_device_radix_sort(luisa::parallel_primitive::DeviceRadixSort<>* sort) noexcept { mp_device_radix_sort = sort; }
 
+    // Temp buffer management for parallel primitives
+    void ensure_scan_temp_buffer(Device& device, size_t num_items);
+    void ensure_radix_sort_temp_buffer(Device& device, size_t num_items);
+
+private:
+    // Temp buffers for device scan and radix sort
+    // Using uint as the element type (as required by the API)
+    luisa::unique_ptr<Buffer<uint>> m_scan_temp_buffer;
+    luisa::unique_ptr<Buffer<uint>> m_radix_sort_temp_buffer;
+    size_t                          m_scan_temp_buffer_size = 0;       // in uint count
+    size_t                          m_radix_sort_temp_buffer_size = 0; // in uint count
+
 protected:
     virtual void compile(Device& device) noexcept;
     virtual void compile_forward_shader(Device& device) noexcept;

@@ -7,17 +7,57 @@
 
 #include "lcgs/gs_tile_splatter.h"
 #include "lcgs/util/misc.hpp"
+#include <lcpp/common/utils.h>
 
 namespace lcgs
 {
 
 using namespace luisa;
 using namespace luisa::compute;
+using namespace luisa::parallel_primitive;
+
+// Helper to convert bytes to uint count (round up)
+inline size_t bytes_to_uint_count(size_t byte_size)
+{
+    return (byte_size + sizeof(uint) - 1) / sizeof(uint);
+}
 
 void GSTileSplatter::create(Device& device) noexcept
 {
     compile(device);
     LUISA_INFO("Tile Splatter created");
+}
+
+void GSTileSplatter::ensure_scan_temp_buffer(Device& device, size_t num_items)
+{
+    using ScannerT = luisa::parallel_primitive::DeviceScan<>;
+    size_t temp_bytes = ScannerT::GetTempStorageBytes<uint>(num_items);
+    size_t required_uint_count = bytes_to_uint_count(temp_bytes);
+    
+    if (m_scan_temp_buffer == nullptr || m_scan_temp_buffer_size < required_uint_count)
+    {
+        // Grow the buffer: use max of required size and double current size to avoid frequent reallocations
+        size_t new_size = m_scan_temp_buffer_size == 0 ? required_uint_count : std::max(required_uint_count, m_scan_temp_buffer_size * 2);
+        m_scan_temp_buffer = luisa::make_unique<Buffer<uint>>(device.create_buffer<uint>(new_size));
+        m_scan_temp_buffer_size = new_size;
+        LUISA_INFO("GSTileSplatter: scan temp buffer resized to {} uints ({} bytes)", new_size, new_size * sizeof(uint));
+    }
+}
+
+void GSTileSplatter::ensure_radix_sort_temp_buffer(Device& device, size_t num_items)
+{
+    using RadixSorterT = luisa::parallel_primitive::DeviceRadixSort<>;
+    size_t temp_bytes = RadixSorterT::GetSortPairsTempStorageBytes<ulong, uint>(static_cast<uint>(num_items));
+    size_t required_uint_count = bytes_to_uint_count(temp_bytes);
+    
+    if (m_radix_sort_temp_buffer == nullptr || m_radix_sort_temp_buffer_size < required_uint_count)
+    {
+        // Grow the buffer: use max of required size and double current size to avoid frequent reallocations
+        size_t new_size = m_radix_sort_temp_buffer_size == 0 ? required_uint_count : std::max(required_uint_count, m_radix_sort_temp_buffer_size * 2);
+        m_radix_sort_temp_buffer = luisa::make_unique<Buffer<uint>>(device.create_buffer<uint>(new_size));
+        m_radix_sort_temp_buffer_size = new_size;
+        LUISA_INFO("GSTileSplatter: radix sort temp buffer resized to {} uints ({} bytes)", new_size, new_size * sizeof(uint));
+    }
 }
 
 int GSTileSplatter::forward(
@@ -58,7 +98,11 @@ int GSTileSplatter::forward(
            )
                .dispatch(num_gaussians);
     stream << cmdlist.commit() << synchronize();
-    mp_device_scan->InclusiveSum(cmdlist, d_tiles_touched, d_point_offsets, num_gaussians);
+    
+    // Ensure scan temp buffer is large enough and perform inclusive sum
+    ensure_scan_temp_buffer(device, num_gaussians);
+    mp_device_scan->InclusiveSum(cmdlist, m_scan_temp_buffer->view(), d_tiles_touched, d_point_offsets, num_gaussians);
+    
     cmdlist << accel.point_offsets.subview(input.num_gaussians - 1, 1).copy_to(&num_rendered);
     stream << cmdlist.commit() << synchronize();
 
@@ -85,8 +129,12 @@ int GSTileSplatter::forward(
     )
                    .dispatch(num_gaussians);
     stream << cmdlist.commit() << synchronize();
+    
+    // Ensure radix sort temp buffer is large enough and perform sort
+    ensure_radix_sort_temp_buffer(device, num_rendered);
     mp_device_radix_sort->SortPairs<ulong, uint>(
         cmdlist,
+        m_radix_sort_temp_buffer->view(),
         d_point_list_keys_unsorted,
         d_point_list_keys,
         d_point_list_unsorted,
