@@ -160,6 +160,7 @@ int main(int argc, char** argv)
 
     LUISA_INFO("Rendering {} with backend {}, assuming world type {}", ply_path.string(), backend, world_type_fmt);
     Device  device   = context.create_device(backend.c_str());
+    auto    stream   = device.create_stream(StreamTag::GRAPHICS);
     Device* p_device = &device;
 
     lcgs::GaussiansData data;
@@ -173,8 +174,8 @@ int main(int argc, char** argv)
     lcgs::BufferFiller                           bf;
     luisa::parallel_primitive::DeviceScan<>      device_scan;
     luisa::parallel_primitive::DeviceRadixSort<> device_radix_sort;
-    device_scan.create(device);
-    device_radix_sort.create(device);
+    device_scan.create(device, &stream);
+    device_radix_sort.create(device, &stream);
 
     auto d_pos   = p_device->create_buffer<float>(P * 3);
     auto d_scale = p_device->create_buffer<float>(P * 3);
@@ -218,7 +219,6 @@ int main(int argc, char** argv)
              << d_sh.view(0, P * 3 * 16).copy_from(data.feature.data())
              << d_opacity.view(0, P * 1).copy_from(data.opacity.data());
 
-    auto  stream   = device.create_stream(StreamTag::GRAPHICS);
     auto* p_stream = &stream;
     stream << cmd_list.commit() << synchronize();
 

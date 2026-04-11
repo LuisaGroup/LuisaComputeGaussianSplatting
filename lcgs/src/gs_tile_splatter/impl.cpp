@@ -44,7 +44,6 @@ int GSTileSplatter::forward(
     auto d_tiles_touched = accel.tiles_touched.subview(0, num_gaussians);
 
     CommandList cmdlist;
-
     cmdlist
         << (*shad_allocate_tiles)(
                num_gaussians,
@@ -58,9 +57,8 @@ int GSTileSplatter::forward(
                use_focal
            )
                .dispatch(num_gaussians);
-
-    mp_device_scan->InclusiveSum(cmdlist, stream, d_tiles_touched, d_point_offsets, num_gaussians);
-
+    stream << cmdlist.commit() << synchronize();
+    mp_device_scan->InclusiveSum(cmdlist, d_tiles_touched, d_point_offsets, num_gaussians);
     cmdlist << accel.point_offsets.subview(input.num_gaussians - 1, 1).copy_to(&num_rendered);
     stream << cmdlist.commit() << synchronize();
 
@@ -86,18 +84,18 @@ int GSTileSplatter::forward(
                    m_blocks, grids
     )
                    .dispatch(num_gaussians);
-
+    stream << cmdlist.commit() << synchronize();
     mp_device_radix_sort->SortPairs<ulong, uint>(
-        cmdlist, stream,
+        cmdlist,
         d_point_list_keys_unsorted,
         d_point_list_keys,
         d_point_list_unsorted,
         d_point_list,
         num_rendered
     );
-
+    stream << cmdlist.commit() << synchronize();
     auto d_ranges = accel.ranges.subview(0, grids.x * grids.y * 2);
-
+    stream << cmdlist.commit() << synchronize();
     cmdlist << mp_buffer_filler->fill(device, d_ranges, 0u);
 
     LUISA_INFO("get ranges");

@@ -34,13 +34,13 @@ public:
          bool                      use_focal = true
      ) noexcept;
 
-    BufferFiller*   mp_buffer_filler;
-    void            set_buffer_filler(BufferFiller* buffer_filler) noexcept { mp_buffer_filler = buffer_filler; }
+    BufferFiller* mp_buffer_filler;
+    void          set_buffer_filler(BufferFiller* buffer_filler) noexcept { mp_buffer_filler = buffer_filler; }
 
-    luisa::parallel_primitive::DeviceScan<>*      mp_device_scan = nullptr;
-    luisa::parallel_primitive::DeviceRadixSort<>*  mp_device_radix_sort = nullptr;
-    void set_device_scan(luisa::parallel_primitive::DeviceScan<>* scan) noexcept { mp_device_scan = scan; }
-    void set_device_radix_sort(luisa::parallel_primitive::DeviceRadixSort<>* sort) noexcept { mp_device_radix_sort = sort; }
+    luisa::parallel_primitive::DeviceScan<>*      mp_device_scan       = nullptr;
+    luisa::parallel_primitive::DeviceRadixSort<>* mp_device_radix_sort = nullptr;
+    void                                          set_device_scan(luisa::parallel_primitive::DeviceScan<>* scan) noexcept { mp_device_scan = scan; }
+    void                                          set_device_radix_sort(luisa::parallel_primitive::DeviceRadixSort<>* sort) noexcept { mp_device_radix_sort = sort; }
 
 protected:
     virtual void compile(Device& device) noexcept;
